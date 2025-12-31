@@ -1,117 +1,134 @@
-import OpenAI from "openai";
+// /api/perfumista.js (Vercel)
+// Node 18+ (fetch disponível)
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Libera chamadas do GitHub Pages do Victor
-const ALLOWED_ORIGINS = new Set([
+const ALLOWED_ORIGINS = [
   "https://vguerise.github.io",
-]);
+  "http://localhost:3000",
+  "http://127.0.0.1:5500",
+];
 
-function setCors(req, res) {
-  const origin = req.headers.origin;
-
-  if (!origin) {
-    // requests sem origin (curl/postman)
-    res.setHeader("Access-Control-Allow-Origin", "*");
-  } else if (ALLOWED_ORIGINS.has(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-
+function setCors(res, origin) {
+  // Para começar sem dor de cabeça, liberamos tudo:
+  // (Se quiser travar depois, basta trocar "*" pela origem validada)
+  res.setHeader("Access-Control-Allow-Origin", origin || "*");
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
   res.setHeader("Access-Control-Max-Age", "86400");
 }
 
-const SYSTEM_PROMPT = `
-Você é "O Perfumista".
-Objetivo: transformar o diagnóstico do usuário em 3 recomendações úteis e diretas para equilibrar a coleção.
+function pickOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return "*";
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
+  return "*";
+}
 
-REGRAS:
-- Sem introdução longa.
-- Responda sempre com 3 recomendações.
-- Cada recomendação deve ter: nome, família, faixa_preco, por_que, quando_usar.
-- Use perfumes reais (preferência: disponíveis no Brasil).
-- Foque em clima + ambiente (aberto/fechado) + orçamento + lacunas.
+function safeJsonParse(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
 
-SAÍDA:
-Você DEVE responder APENAS com JSON válido (sem markdown, sem crases):
+export default async function handler(req, res) {
+  const origin = pickOrigin(req);
+  setCors(res, origin);
 
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Use POST." });
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return res
+      .status(500)
+      .json({ error: "OPENAI_API_KEY não configurada no Vercel." });
+  }
+
+  const { diagnostico } = req.body || {};
+  const text = typeof diagnostico === "string" ? diagnostico.trim() : "";
+
+  if (!text) {
+    return res.status(400).json({ error: "Campo 'diagnostico' vazio." });
+  }
+
+  // Prompt: devolve JSON fixo (para o front renderizar em cards)
+  const instructions = `
+Você é O Perfumista (consultor de perfumaria masculina).
+Saída: RESPONDA APENAS EM JSON válido (sem markdown, sem texto extra).
+Formato:
 {
-  "titulo": "3 recomendações para equilibrar sua coleção",
-  "subtitulo": "Baseado no seu diagnóstico e lacunas identificadas.",
+  "titulo": "🎁 3 RECOMENDAÇÕES PARA EQUILIBRAR SUA COLEÇÃO",
+  "subtitulo": "Baseado no seu contexto e lacunas identificadas.",
   "recomendacoes": [
     {
       "nome": "Nome do perfume",
-      "familia": "Fresco/Cítrico | Amadeirado | Doce/Gourmand | Especiado/Oriental | Aquático | Aromático/Verde | Floral | Frutado | Talco/Fougère",
-      "faixa_preco": "R$ 400–550",
-      "por_que": "1 frase objetiva",
-      "quando_usar": "1 frase objetiva"
+      "familia": "Família olfativa (ex: Fresco/Cítrico, Aquático, Amadeirado, Doce/Gourmand, Especiado/Oriental, etc.)",
+      "faixa_preco": "Faixa em R$ (ex: R$ 350–550)",
+      "por_que": "1–2 frases objetivas do porquê encaixa no perfil e no que falta",
+      "quando_usar": "Situações ideais (clima/ambiente/ocasião)"
     }
   ],
   "pergunta_extra": "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!"
 }
-`;
-
-export default async function handler(req, res) {
-  setCors(req, res);
-
-  // Preflight
-  if (req.method === "OPTIONS") return res.status(204).end();
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Use POST" });
-  }
+Regras:
+- Exatamente 3 itens em "recomendacoes".
+- Seja prático, sem enrolação, e considere clima e ambiente citados.
+- Se faltar alguma info no texto, assuma de forma conservadora e siga.
+`.trim();
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
-
-    // ✅ COMPATIBILIDADE: aceita "diagnostico" OU "prompt"
-    const incoming =
-      (body.diagnostico ?? body.prompt ?? body.text ?? "").toString().trim();
-
-    if (!incoming) {
-      return res.status(400).json({ error: "Campo 'diagnostico' vazio." });
-    }
-
-    const diagnostico = incoming.length > 6000 ? incoming.slice(0, 6000) : incoming;
-
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: diagnostico },
-      ],
-      max_output_tokens: 900,
+    const r = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        instructions,
+        input: text,
+        temperature: 0.6,
+        max_output_tokens: 550,
+        store: false,
+      }),
     });
 
-    const text =
-      response.output
-        ?.flatMap((o) => o.content || [])
-        ?.filter((c) => c.type === "output_text")
-        ?.map((c) => c.text)
-        ?.join("") || "";
+    const raw = await r.text();
 
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      // fallback se vier fora do JSON
-      data = {
-        titulo: "Resposta do Perfumista",
-        subtitulo: "Não foi possível formatar em cards automaticamente.",
-        recomendacoes: [],
-        pergunta_extra:
-          "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!",
-        raw: text,
-      };
+    if (!r.ok) {
+      return res.status(r.status).json({ error: `OpenAI: ${raw}` });
     }
 
-    // ✅ Também devolve "text" pra não quebrar nenhum front antigo
-    return res.status(200).json({ ...data, text });
-  } catch (err) {
-    const status = err?.status || 500;
-    const msg = err?.message || "Erro desconhecido";
-    return res.status(status).json({ error: msg });
+    const payload = safeJsonParse(raw);
+
+    const outputText =
+      payload?.output
+        ?.find((o) => o.type === "message")
+        ?.content?.find((c) => c.type === "output_text")?.text ||
+      payload?.output_text ||
+      "";
+
+    const json = safeJsonParse(outputText.trim());
+
+    if (!json) {
+      // fallback (não quebra o front)
+      return res.status(200).json({
+        titulo: "Resposta do Perfumista",
+        subtitulo: "Não consegui estruturar em JSON — retornando texto.",
+        recomendacoes: [],
+        raw: outputText.trim(),
+      });
+    }
+
+    return res.status(200).json(json);
+  } catch (e) {
+    return res.status(500).json({ error: String(e?.message || e) });
   }
 }
