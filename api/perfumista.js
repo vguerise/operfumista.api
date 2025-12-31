@@ -90,7 +90,7 @@ export default async function handler(req, res) {
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: diagnostico },
       ],
-      max_output_tokens: 900,
+      max_output_tokens: 450,
     });
 
     const text =
