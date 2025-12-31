@@ -1,134 +1,117 @@
-// /api/perfumista.js (Vercel)
-// Node 18+ (fetch disponível)
+import OpenAI from "openai";
 
-const ALLOWED_ORIGINS = [
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Ajuste aqui se você quiser permitir também o Tiny.site etc.
+const ALLOWED_ORIGINS = new Set([
   "https://vguerise.github.io",
-  "http://localhost:3000",
-  "http://127.0.0.1:5500",
-];
+  "https://vguerise.github.io/operfumista",
+  "https://vguerise.github.io/operfumista/",
+]);
 
-function setCors(res, origin) {
-  // Para começar sem dor de cabeça, liberamos tudo:
-  // (Se quiser travar depois, basta trocar "*" pela origem validada)
-  res.setHeader("Access-Control-Allow-Origin", origin || "*");
+function setCors(req, res) {
+  const origin = req.headers.origin;
+
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else {
+    // fallback seguro (evita estourar CORS em alguns testes)
+    res.setHeader("Access-Control-Allow-Origin", "https://vguerise.github.io");
+  }
+
   res.setHeader("Vary", "Origin");
-  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Max-Age", "86400");
 }
 
-function pickOrigin(req) {
-  const origin = req.headers.origin;
-  if (!origin) return "*";
-  if (ALLOWED_ORIGINS.includes(origin)) return origin;
-  return "*";
-}
-
-function safeJsonParse(text) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
 export default async function handler(req, res) {
-  const origin = pickOrigin(req);
-  setCors(res, origin);
+  setCors(req, res);
 
+  // Preflight (CORS)
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    return res.status(204).end();
   }
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Use POST." });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return res
-      .status(500)
-      .json({ error: "OPENAI_API_KEY não configurada no Vercel." });
-  }
-
-  const { diagnostico } = req.body || {};
-  const text = typeof diagnostico === "string" ? diagnostico.trim() : "";
-
-  if (!text) {
-    return res.status(400).json({ error: "Campo 'diagnostico' vazio." });
-  }
-
-  // Prompt: devolve JSON fixo (para o front renderizar em cards)
-  const instructions = `
-Você é O Perfumista (consultor de perfumaria masculina).
-Saída: RESPONDA APENAS EM JSON válido (sem markdown, sem texto extra).
-Formato:
-{
-  "titulo": "🎁 3 RECOMENDAÇÕES PARA EQUILIBRAR SUA COLEÇÃO",
-  "subtitulo": "Baseado no seu contexto e lacunas identificadas.",
-  "recomendacoes": [
-    {
-      "nome": "Nome do perfume",
-      "familia": "Família olfativa (ex: Fresco/Cítrico, Aquático, Amadeirado, Doce/Gourmand, Especiado/Oriental, etc.)",
-      "faixa_preco": "Faixa em R$ (ex: R$ 350–550)",
-      "por_que": "1–2 frases objetivas do porquê encaixa no perfil e no que falta",
-      "quando_usar": "Situações ideais (clima/ambiente/ocasião)"
-    }
-  ],
-  "pergunta_extra": "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!"
-}
-Regras:
-- Exatamente 3 itens em "recomendacoes".
-- Seja prático, sem enrolação, e considere clima e ambiente citados.
-- Se faltar alguma info no texto, assuma de forma conservadora e siga.
-`.trim();
-
   try {
-    const r = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const { diagnostico } = req.body || {};
+    if (!diagnostico || !String(diagnostico).trim()) {
+      return res.status(400).json({ error: "Campo 'diagnostico' vazio." });
+    }
+
+    const schema = {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        titulo: { type: "string" },
+        subtitulo: { type: "string" },
+        recomendacoes: {
+          type: "array",
+          minItems: 1,
+          maxItems: 3,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              nome: { type: "string" },
+              familia: { type: "string" },
+              faixa_preco: { type: "string" },
+              por_que: { type: "string" },
+              quando_usar: { type: "string" }
+            },
+            required: ["nome", "familia", "faixa_preco", "por_que", "quando_usar"]
+          }
+        }
       },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        instructions,
-        input: text,
-        temperature: 0.6,
-        max_output_tokens: 550,
-        store: false,
-      }),
+      required: ["titulo", "subtitulo", "recomendacoes"]
+    };
+
+    // Modelo rápido: gpt-4.1-mini :contentReference[oaicite:1]{index=1}
+    const resp = await client.chat.completions.create({
+      model: "gpt-4.1-mini",
+      temperature: 0.6,
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "perfumista_cards", schema, strict: true }
+      },
+      messages: [
+        {
+          role: "system",
+          content:
+            "Você é O Perfumista. Gere exatamente 3 recomendações EM JSON, no schema fornecido. " +
+            "Seja direto, prático e coerente com clima, ambiente e orçamento. " +
+            "Não use markdown, não use texto fora do JSON."
+        },
+        {
+          role: "user",
+          content: String(diagnostico)
+        }
+      ]
     });
 
-    const raw = await r.text();
+    const content = resp?.choices?.[0]?.message?.content || "{}";
+    let json;
 
-    if (!r.ok) {
-      return res.status(r.status).json({ error: `OpenAI: ${raw}` });
-    }
-
-    const payload = safeJsonParse(raw);
-
-    const outputText =
-      payload?.output
-        ?.find((o) => o.type === "message")
-        ?.content?.find((c) => c.type === "output_text")?.text ||
-      payload?.output_text ||
-      "";
-
-    const json = safeJsonParse(outputText.trim());
-
-    if (!json) {
-      // fallback (não quebra o front)
-      return res.status(200).json({
-        titulo: "Resposta do Perfumista",
-        subtitulo: "Não consegui estruturar em JSON — retornando texto.",
+    try {
+      json = JSON.parse(content);
+    } catch {
+      // Se por algum motivo vier algo fora do JSON, ainda devolve algo utilizável
+      json = {
+        titulo: "🎁 3 RECOMENDAÇÕES PARA EQUILIBRAR SUA COLEÇÃO",
+        subtitulo: "Baseado no seu contexto e lacunas identificadas.",
         recomendacoes: [],
-        raw: outputText.trim(),
-      });
+        raw: content
+      };
     }
 
     return res.status(200).json(json);
-  } catch (e) {
-    return res.status(500).json({ error: String(e?.message || e) });
+  } catch (err) {
+    return res.status(500).json({
+      error: err?.message || "Erro interno."
+    });
   }
 }
