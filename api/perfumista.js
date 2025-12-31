@@ -1,117 +1,126 @@
 import OpenAI from "openai";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-// Ajuste aqui se você quiser permitir também o Tiny.site etc.
+// Domínios que podem chamar a API
 const ALLOWED_ORIGINS = new Set([
   "https://vguerise.github.io",
-  "https://vguerise.github.io/operfumista",
-  "https://vguerise.github.io/operfumista/",
 ]);
 
 function setCors(req, res) {
   const origin = req.headers.origin;
 
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+  if (!origin) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  } else if (ALLOWED_ORIGINS.has(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-  } else {
-    // fallback seguro (evita estourar CORS em alguns testes)
-    res.setHeader("Access-Control-Allow-Origin", "https://vguerise.github.io");
   }
 
   res.setHeader("Vary", "Origin");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Max-Age", "86400");
 }
+
+const SYSTEM_PROMPT = `
+Você é "O Perfumista".
+Objetivo: transformar o diagnóstico do usuário em 3 recomendações úteis e diretas para equilibrar a coleção.
+
+REGRAS:
+- Sem introdução longa.
+- Responda sempre com 3 recomendações.
+- Cada recomendação deve ter: nome, família, faixa_preco, por_que, quando_usar.
+- Use perfumes reais (preferência: disponíveis no Brasil).
+- Foque em clima + ambiente (aberto/fechado) + orçamento + lacunas.
+
+SAÍDA:
+Você DEVE responder APENAS com JSON válido (sem markdown, sem crases):
+
+{
+  "titulo": "3 recomendações para equilibrar sua coleção",
+  "subtitulo": "Baseado no seu diagnóstico e lacunas identificadas.",
+  "recomendacoes": [
+    {
+      "nome": "Nome do perfume",
+      "familia": "Fresco/Cítrico | Amadeirado | Doce/Gourmand | Especiado/Oriental | Aquático | Aromático/Verde | Floral | Frutado | Talco/Fougère",
+      "faixa_preco": "R$ 400–550",
+      "por_que": "1 frase objetiva",
+      "quando_usar": "1 frase objetiva"
+    }
+  ],
+  "pergunta_extra": "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!"
+}
+`;
 
 export default async function handler(req, res) {
   setCors(req, res);
 
-  // Preflight (CORS)
+  // Preflight
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Use POST." });
+    return res.status(405).json({ error: "Use POST" });
   }
 
   try {
-    const { diagnostico } = req.body || {};
-    if (!diagnostico || !String(diagnostico).trim()) {
+    // Parse defensivo (Vercel às vezes manda string)
+    const body =
+      typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : (req.body || {});
+
+    // Compatibilidade total com fronts antigos e novos
+    const incoming =
+      (body.diagnostico ?? body.prompt ?? body.text ?? "").toString().trim();
+
+    if (!incoming) {
       return res.status(400).json({ error: "Campo 'diagnostico' vazio." });
     }
 
-    const schema = {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        titulo: { type: "string" },
-        subtitulo: { type: "string" },
-        recomendacoes: {
-          type: "array",
-          minItems: 1,
-          maxItems: 3,
-          items: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              nome: { type: "string" },
-              familia: { type: "string" },
-              faixa_preco: { type: "string" },
-              por_que: { type: "string" },
-              quando_usar: { type: "string" }
-            },
-            required: ["nome", "familia", "faixa_preco", "por_que", "quando_usar"]
-          }
-        }
-      },
-      required: ["titulo", "subtitulo", "recomendacoes"]
-    };
+    const diagnostico =
+      incoming.length > 6000 ? incoming.slice(0, 6000) : incoming;
 
-    // Modelo rápido: gpt-4.1-mini :contentReference[oaicite:1]{index=1}
-    const resp = await client.chat.completions.create({
+    const response = await client.responses.create({
       model: "gpt-4.1-mini",
-      temperature: 0.6,
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "perfumista_cards", schema, strict: true }
-      },
-      messages: [
-        {
-          role: "system",
-          content:
-            "Você é O Perfumista. Gere exatamente 3 recomendações EM JSON, no schema fornecido. " +
-            "Seja direto, prático e coerente com clima, ambiente e orçamento. " +
-            "Não use markdown, não use texto fora do JSON."
-        },
-        {
-          role: "user",
-          content: String(diagnostico)
-        }
-      ]
+      input: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: diagnostico },
+      ],
+      max_output_tokens: 900,
     });
 
-    const content = resp?.choices?.[0]?.message?.content || "{}";
-    let json;
+    const text =
+      response.output
+        ?.flatMap(o => o.content || [])
+        ?.filter(c => c.type === "output_text")
+        ?.map(c => c.text)
+        ?.join("") || "";
 
+    let data;
     try {
-      json = JSON.parse(content);
-    } catch {
-      // Se por algum motivo vier algo fora do JSON, ainda devolve algo utilizável
-      json = {
-        titulo: "🎁 3 RECOMENDAÇÕES PARA EQUILIBRAR SUA COLEÇÃO",
-        subtitulo: "Baseado no seu contexto e lacunas identificadas.",
+      data = JSON.parse(text);
+    } catch (e) {
+      // fallback se o modelo sair do formato
+      data = {
+        titulo: "Resposta do Perfumista",
+        subtitulo: "Não foi possível formatar em cards automaticamente.",
         recomendacoes: [],
-        raw: content
+        pergunta_extra:
+          "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!",
+        raw: text,
       };
     }
 
-    return res.status(200).json(json);
+    // também devolve "text" para compatibilidade com fronts antigos
+    return res.status(200).json({ ...data, text });
+
   } catch (err) {
-    return res.status(500).json({
-      error: err?.message || "Erro interno."
-    });
+    const status = err?.status || 500;
+    const msg = err?.message || "Erro desconhecido";
+    return res.status(status).json({ error: msg });
   }
 }
