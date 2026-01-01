@@ -133,6 +133,8 @@ SAÍDA (schema obrigatório):
 
 RESTRIÇÃO IMPORTANTE:
 - As porcentagens em familias_percentuais devem somar 100.
+- NUNCA retorne todas as famílias como 0. Se não souber, estime com base na lista de perfumes.
+- As 3 recomendações devem priorizar as famílias em top_faltantes (não repetir a dominante salvo necessidade).
 - Sempre inclua todas as 9 chaves, mesmo que seja 0.
 `;
 
