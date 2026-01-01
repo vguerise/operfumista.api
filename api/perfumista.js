@@ -9,56 +9,6 @@ const ALLOWED_ORIGINS = new Set([
   "https://vguerise.github.io",
 ]);
 
-
-
-// Chaves fixas do radar (sempre presentes no output)
-const FAMILIAS_TEMPLATE = {
-  fresco_citrico: 0,
-  amadeirado: 0,
-  doce_gourmand: 0,
-  especiado_oriental: 0,
-  aquatico: 0,
-  aromatico_verde: 0,
-  floral: 0,
-  frutado: 0,
-  talco_fougere: 0,
-};
-
-function coerceNumber(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function normalizeFamiliasTo100(obj) {
-  const out = { ...FAMILIAS_TEMPLATE };
-  if (!obj || typeof obj !== "object") return out;
-
-  // copia apenas as chaves conhecidas
-  for (const k of Object.keys(out)) out[k] = coerceNumber(obj[k]);
-
-  const total = Object.values(out).reduce((a, b) => a + b, 0);
-
-  // se vier tudo zerado ou inválido, deixa zerado
-  if (!Number.isFinite(total) || total <= 0) return out;
-
-  // normaliza para somar 100
-  for (const k of Object.keys(out)) out[k] = (out[k] / total) * 100;
-
-  // arredonda e corrige drift para fechar em 100
-  const keys = Object.keys(out);
-  for (const k of keys) out[k] = Math.round(out[k]);
-
-  let sum = keys.reduce((a, k) => a + out[k], 0);
-  if (sum !== 100) {
-    // ajusta na maior família
-    let maxK = keys[0];
-    for (const k of keys) if (out[k] > out[maxK]) maxK = k;
-    out[maxK] += (100 - sum);
-  }
-
-  return out;
-}
-
 function setCors(req, res) {
   const origin = req.headers.origin;
 
@@ -76,49 +26,21 @@ function setCors(req, res) {
 
 const SYSTEM_PROMPT = `
 Você é "O Perfumista".
-Objetivo: gerar (1) diagnóstico da coleção + (2) distribuição de famílias para o radar + (3) 3 recomendações para equilibrar.
+Objetivo: transformar o diagnóstico do usuário em 3 recomendações úteis e diretas para equilibrar a coleção.
 
 REGRAS:
 - Sem introdução longa.
-- Saída SEMPRE em JSON válido (sem markdown, sem crases).
-- Sempre retorne exatamente 3 recomendações.
+- Responda sempre com 3 recomendações.
+- Cada recomendação deve ter: nome, família, faixa_preco, por_que, quando_usar.
 - Use perfumes reais (preferência: disponíveis no Brasil).
-- Considere clima + ambiente + orçamento + lista de perfumes.
-- Se faltar informação, faça a melhor inferência possível e mantenha coerência.
+- Foque em clima + ambiente (aberto/fechado) + orçamento + lacunas.
 
-FAMÍLIAS (chaves fixas do radar):
-fresco_citrico
-amadeirado
-doce_gourmand
-especiado_oriental
-aquatico
-aromatico_verde
-floral
-frutado
-talco_fougere
+SAÍDA:
+Você DEVE responder APENAS com JSON válido (sem markdown, sem crases):
 
-SAÍDA (schema obrigatório):
 {
-  "titulo": "Mapa da Coleção Perfeita — Análise e Recomendações",
-  "subtitulo": "Baseado no seu diagnóstico e nas lacunas identificadas.",
-  "diagnostico": {
-    "nivel": "INICIANTE | INTERMEDIÁRIO | AVANÇADO (com complemento se necessário)",
-    "equilibrada": true,
-    "dominante": "nome humano da família dominante (ex: Fresco/Cítrico)",
-    "top_faltantes": ["...", "...", "..."],
-    "texto": "1 parágrafo curto e direto (sem enrolação)."
-  },
-  "familias_percentuais": {
-    "fresco_citrico": 0,
-    "amadeirado": 0,
-    "doce_gourmand": 0,
-    "especiado_oriental": 0,
-    "aquatico": 0,
-    "aromatico_verde": 0,
-    "floral": 0,
-    "frutado": 0,
-    "talco_fougere": 0
-  },
+  "titulo": "3 recomendações para equilibrar sua coleção",
+  "subtitulo": "Baseado no seu diagnóstico e lacunas identificadas.",
   "recomendacoes": [
     {
       "nome": "Nome do perfume",
@@ -128,12 +50,8 @@ SAÍDA (schema obrigatório):
       "quando_usar": "1 frase objetiva"
     }
   ],
-  "pergunta_extra": "Quer mais alguma sugestão? Diga clima, ambiente e orçamento!"
+  "pergunta_extra": "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!"
 }
-
-RESTRIÇÃO IMPORTANTE:
-- As porcentagens em familias_percentuais devem somar 100.
-- Sempre inclua todas as 9 chaves, mesmo que seja 0.
 `;
 
 export default async function handler(req, res) {
@@ -186,12 +104,10 @@ export default async function handler(req, res) {
     try {
       data = JSON.parse(text);
     } catch (e) {
-            // fallback se o modelo sair do formato
+      // fallback se o modelo sair do formato
       data = {
         titulo: "Resposta do Perfumista",
         subtitulo: "Não foi possível formatar em cards automaticamente.",
-        diagnostico: null,
-        familias_percentuais: { ...FAMILIAS_TEMPLATE },
         recomendacoes: [],
         pergunta_extra:
           "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!",
@@ -199,34 +115,7 @@ export default async function handler(req, res) {
       };
     }
 
-    
-    // Sanitização / compatibilidade com o mapa
-    // - garante 3 recomendações
-    // - garante diagnóstico
-    // - garante familias_percentuais com as 9 chaves e somando 100
-    if (!data || typeof data !== "object") data = {};
-
-    if (!Array.isArray(data.recomendacoes)) data.recomendacoes = [];
-    data.recomendacoes = data.recomendacoes.slice(0, 3);
-
-    // se vier menos de 3, completa com placeholders para não quebrar UI
-    while (data.recomendacoes.length < 3) {
-      data.recomendacoes.push({
-        nome: "Sugestão em processamento",
-        familia: "—",
-        faixa_preco: "—",
-        por_que: "—",
-        quando_usar: "—",
-      });
-    }
-
-    if (data.diagnostico == null) data.diagnostico = null;
-
-    // aceita também 'familias' como alias
-    const famIn = data.familias_percentuais || data.familias || null;
-    data.familias_percentuais = normalizeFamiliasTo100(famIn);
-
-// também devolve "text" para compatibilidade com fronts antigos
+    // também devolve "text" para compatibilidade com fronts antigos
     return res.status(200).json({ ...data, text });
 
   } catch (err) {
