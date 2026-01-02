@@ -1,126 +1,122 @@
 import OpenAI from "openai";
 
-/**
- * Vercel Serverless Function (Node)
- * Endpoint: /api/perfumista
- *
- * Entrada esperada (POST JSON):
- * {
- *   "prompt": "texto do diagnóstico do mapa pai (coleção, orçamento, ambiente etc)",
- *   "extra": "opcional: pedido adicional do usuário"
- * }
- *
- * Saída:
- * {
- *   "text": "linha1\nlinha2\nlinha3",
- *   "top3": ["linha1","linha2","linha3"]
- * }
- */
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Ajuste aqui seus domínios permitidos (CORS)
+// Domínios que podem chamar a API
 const ALLOWED_ORIGINS = new Set([
   "https://vguerise.github.io",
-  // "https://seu-dominio.com",
 ]);
 
 function setCors(req, res) {
   const origin = req.headers.origin;
 
-  // Se não houver origin (curl/postman) libera
   if (!origin) {
     res.setHeader("Access-Control-Allow-Origin", "*");
   } else if (ALLOWED_ORIGINS.has(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin");
   }
 
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Max-Age", "86400");
 }
 
-function normalizeLines(text) {
-  const lines = String(text || "")
-    .replace(/\r/g, "")
-    .split("\n")
-    .map(l => l.trim())
-    .filter(Boolean);
+const SYSTEM_PROMPT = `
+Você é "O Perfumista".
+Objetivo: transformar o diagnóstico do usuário em 3 recomendações úteis e diretas para equilibrar a coleção.
 
-  // Se o modelo devolver bullets/números, remove prefixos comuns
-  const cleaned = lines.map(l =>
-    l.replace(/^[-*•]\s*/, "").replace(/^\d+\s*[\).\-\:]\s*/, "").trim()
-  );
+REGRAS:
+- Sem introdução longa.
+- Responda sempre com 3 recomendações.
+- Cada recomendação deve ter: nome, família, faixa_preco, por_que, quando_usar.
+- Use perfumes reais (preferência: disponíveis no Brasil).
+- Foque em clima + ambiente (aberto/fechado) + orçamento + lacunas.
 
-  // Garante 3 linhas. Se vier mais, corta. Se vier menos, preenche com placeholder.
-  const top3 = cleaned.slice(0, 3);
-  while (top3.length < 3) top3.push("Sugestão indisponível — Ajuste seu pedido e tente novamente.");
-  return top3;
+SAÍDA:
+Você DEVE responder APENAS com JSON válido (sem markdown, sem crases):
+
+{
+  "titulo": "3 recomendações para equilibrar sua coleção",
+  "subtitulo": "Baseado no seu diagnóstico e lacunas identificadas.",
+  "recomendacoes": [
+    {
+      "nome": "Nome do perfume",
+      "familia": "Fresco/Cítrico | Amadeirado | Doce/Gourmand | Especiado/Oriental | Aquático | Aromático/Verde | Floral | Frutado | Talco/Fougère",
+      "faixa_preco": "R$ 400–550",
+      "por_que": "1 frase objetiva",
+      "quando_usar": "1 frase objetiva"
+    }
+  ],
+  "pergunta_extra": "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!"
 }
+`;
 
 export default async function handler(req, res) {
   setCors(req, res);
 
+  // Preflight
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método não permitido. Use POST." });
+    return res.status(405).json({ error: "Use POST" });
   }
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
-    const prompt = (body.prompt || "").toString().trim();
-    const extra = (body.extra || "").toString().trim();
+    // Parse defensivo (Vercel às vezes manda string)
+    const body =
+      typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : (req.body || {});
 
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: "OPENAI_API_KEY não configurada no servidor." });
+    // Compatibilidade total com fronts antigos e novos
+    const incoming =
+      (body.diagnostico ?? body.prompt ?? body.text ?? "").toString().trim();
+
+    if (!incoming) {
+      return res.status(400).json({ error: "Campo 'diagnostico' vazio." });
     }
 
-    if (!prompt) {
-      return res.status(400).json({ error: "Campo 'prompt' é obrigatório." });
-    }
+    const diagnostico =
+      incoming.length > 6000 ? incoming.slice(0, 6000) : incoming;
 
-    const system = [
-      "Você é o Perfumista (motor do 'Mapa da Coleção Perfeita').",
-      "Seu trabalho: analisar a coleção informada pelo usuário + clima + ambiente de trabalho + orçamento.",
-      "Objetivo: sugerir 3 perfumes (TOP 3) que EQUILIBREM a coleção, priorizando famílias menos representadas e adequação ao contexto.",
-      "",
-      "REGRAS DE SAÍDA (obrigatório):",
-      "1) Responda APENAS com 3 linhas, uma por recomendação. Nada além.",
-      "2) Cada linha deve seguir exatamente este formato:",
-      "   Nome do perfume | Família | Faixa de preço (R$ xxx–yyy) | 6 a 12 palavras de justificativa",
-      "3) Não use bullets, não use numeração, não use parágrafos extras.",
-      "4) Se faltar informação, faça a melhor inferência sem perguntar.",
-      "",
-      "Critérios:",
-      "- Se o ambiente for fechado/escritório: evitar bombas extremamente invasivas; priorizar elegância e controle.",
-      "- Se o clima for quente: evitar perfumes muito densos/doce pesado (a menos que pedido).",
-      "- Use alternativas disponíveis no Brasil (designer + nicho acessível), dentro do orçamento quando possível.",
-    ].join("\n");
-
-    const user = [
-      "DADOS DO MAPA PAI:",
-      prompt,
-      extra ? `\nPEDIDO EXTRA DO USUÁRIO:\n${extra}` : "",
-    ].join("\n");
-
-    // Observação: escolha do modelo — você pode trocar por outro disponível no seu plano.
-    const completion = await client.chat.completions.create({
+    const response = await client.responses.create({
       model: "gpt-4.1-mini",
-      temperature: 0.7,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
+      input: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: diagnostico },
       ],
+      max_output_tokens: 450,
     });
 
-    const rawText = completion?.choices?.[0]?.message?.content ?? "";
-    const top3 = normalizeLines(rawText);
-    const text = top3.join("\n");
+    const text =
+      response.output
+        ?.flatMap(o => o.content || [])
+        ?.filter(c => c.type === "output_text")
+        ?.map(c => c.text)
+        ?.join("") || "";
 
-    return res.status(200).json({ text, top3, raw: rawText });
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      // fallback se o modelo sair do formato
+      data = {
+        titulo: "Resposta do Perfumista",
+        subtitulo: "Não foi possível formatar em cards automaticamente.",
+        recomendacoes: [],
+        pergunta_extra:
+          "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!",
+        raw: text,
+      };
+    }
+
+    // também devolve "text" para compatibilidade com fronts antigos
+    return res.status(200).json({ ...data, text });
 
   } catch (err) {
     const status = err?.status || 500;
