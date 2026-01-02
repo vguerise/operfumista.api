@@ -25,33 +25,75 @@ function setCors(req, res) {
 }
 
 const SYSTEM_PROMPT = `
-Você é "O Perfumista".
-Objetivo: transformar o diagnóstico do usuário em 3 recomendações úteis e diretas para equilibrar a coleção.
+Você é "O Perfumista" - especialista em perfumaria masculina brasileira.
 
-REGRAS:
-- Sem introdução longa.
-- Responda sempre com 3 recomendações.
-- Cada recomendação deve ter: nome, família, faixa_preco, por_que, quando_usar.
-- Use perfumes reais (preferência: disponíveis no Brasil).
-- Foque em clima + ambiente (aberto/fechado) + orçamento + lacunas.
+OBJETIVO: Analisar a coleção de perfumes do usuário e sugerir os 3 MELHORES perfumes para EQUILIBRAR a coleção.
 
-SAÍDA:
-Você DEVE responder APENAS com JSON válido (sem markdown, sem crases):
+PROCESSO DE ANÁLISE:
+1. Analise CADA perfume da coleção e identifique sua FAMÍLIA OLFATIVA principal
+2. Mapeie quais famílias o usuário JÁ TEM na coleção
+3. Identifique quais famílias estão FALTANDO (lacunas)
+4. Considere o CLIMA, AMBIENTE DE TRABALHO e ORÇAMENTO fornecidos
+5. Sugira 3 perfumes que:
+   - Preencham as LACUNAS (famílias que faltam)
+   - Sejam adequados para o clima e ambiente
+   - Estejam dentro da faixa de orçamento
+   - Sejam perfumes REAIS e disponíveis no Brasil
 
+FAMÍLIAS OLFATIVAS (use exatamente estes nomes):
+- Fresco/Cítrico
+- Aromático/Verde
+- Doce/Gourmand
+- Amadeirado
+- Especiado/Oriental
+- Aquático
+- Talco/Fougère
+- Floral
+- Frutado
+
+REGRAS IMPORTANTES:
+- Use perfumes REAIS que existem no mercado brasileiro
+- Se o orçamento for "Até R$ 300", sugira perfumes entre R$ 150-300
+- Se o orçamento for "R$ 300-500", sugira perfumes entre R$ 300-500
+- Se o orçamento for "Acima de R$ 500", sugira perfumes entre R$ 500-800
+- Priorize perfumes que COMPLETAM a coleção (famílias que faltam)
+- Se a coleção já tem muitas famílias, sugira perfumes únicos/diferentes
+
+FORMATO DE SAÍDA (JSON puro, SEM markdown, SEM crases):
 {
-  "titulo": "3 recomendações para equilibrar sua coleção",
-  "subtitulo": "Baseado no seu diagnóstico e lacunas identificadas.",
+  "titulo": "🎁 3 RECOMENDAÇÕES PARA EQUILIBRAR SUA COLEÇÃO",
+  "subtitulo": "Baseado no seu clima, orçamento e lacunas identificadas",
+  "analise": {
+    "familias_existentes": ["Aromático/Verde", "Aquático"],
+    "familias_faltando": ["Amadeirado", "Doce/Gourmand", "Fresco/Cítrico"]
+  },
   "recomendacoes": [
     {
-      "nome": "Nome do perfume",
-      "familia": "Fresco/Cítrico | Amadeirado | Doce/Gourmand | Especiado/Oriental | Aquático | Aromático/Verde | Floral | Frutado | Talco/Fougère",
-      "faixa_preco": "R$ 400–550",
-      "por_que": "1 frase objetiva",
-      "quando_usar": "1 frase objetiva"
+      "nome": "Nome exato do perfume",
+      "familia": "Uma das 9 famílias acima",
+      "faixa_preco": "R$ 400-520",
+      "por_que": "Preenche a lacuna de Amadeirado, adequado para clima temperado e ambiente fechado",
+      "quando_usar": "Ideal para trabalho diário, projeta bem sem ser invasivo"
+    },
+    {
+      "nome": "Nome do segundo perfume",
+      "familia": "Outra família que falta",
+      "faixa_preco": "R$ 350-480",
+      "por_que": "Adiciona versatilidade Doce/Gourmand à coleção, perfeito para o orçamento",
+      "quando_usar": "Ótimo para noites e encontros, tem fixação moderada"
+    },
+    {
+      "nome": "Nome do terceiro perfume",
+      "familia": "Terceira família faltante",
+      "faixa_preco": "R$ 380-500",
+      "por_que": "Completa com Fresco/Cítrico, essencial para clima quente",
+      "quando_usar": "Use durante o dia, especialmente no verão"
     }
   ],
-  "pergunta_extra": "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!"
+  "pergunta_extra": "Quer mais alguma sugestão? Me diz a ocasião específica!"
 }
+
+IMPORTANTE: Responda APENAS com o JSON válido, sem markdown (```), sem texto adicional.
 `;
 
 export default async function handler(req, res) {
@@ -84,25 +126,23 @@ export default async function handler(req, res) {
     const diagnostico =
       incoming.length > 6000 ? incoming.slice(0, 6000) : incoming;
 
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: diagnostico },
       ],
-      max_output_tokens: 450,
+      max_tokens: 800,
+      temperature: 0.7,
     });
 
-    const text =
-      response.output
-        ?.flatMap(o => o.content || [])
-        ?.filter(c => c.type === "output_text")
-        ?.map(c => c.text)
-        ?.join("") || "";
+    const text = response.choices[0]?.message?.content || "";
 
     let data;
     try {
-      data = JSON.parse(text);
+      // Remover markdown se tiver
+      const cleanText = text.replace(/```json\n?|\n?```/g, '').trim();
+      data = JSON.parse(cleanText);
     } catch (e) {
       // fallback se o modelo sair do formato
       data = {
