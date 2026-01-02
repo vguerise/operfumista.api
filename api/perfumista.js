@@ -24,75 +24,101 @@ function setCors(req, res) {
   res.setHeader("Access-Control-Max-Age", "86400");
 }
 
-const SYSTEM_PROMPT = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
+const SYSTEM_PROMPT = `
+Você é "O Perfumista".
+Objetivo: transformar o diagnóstico do usuário em 3 recomendações úteis e diretas para equilibrar a coleção.
 
-Seu papel é:
-1. Analisar a coleção de perfumes que o usuário possui
+REGRAS:
+- Sem introdução longa.
+- Responda sempre com 3 recomendações.
+- Cada recomendação deve ter: nome, família, faixa_preco, por_que, quando_usar.
+- Use perfumes reais (preferência: disponíveis no Brasil).
+- Foque em clima + ambiente (aberto/fechado) + orçamento + lacunas.
 
-const SYSTEM_PROMPT = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
+SAÍDA:
+Você DEVE responder APENAS com JSON válido (sem markdown, sem crases):
 
-**REGRA CRÍTICA DAS RECOMENDAÇÕES:**
-NUNCA sugira perfumes da FAMÍLIA DOMINANTE! Se 66% da coleção é "Doce/Gourmand", NÃO sugira perfume doce!
+{
+  "titulo": "3 recomendações para equilibrar sua coleção",
+  "subtitulo": "Baseado no seu diagnóstico e lacunas identificadas.",
+  "recomendacoes": [
+    {
+      "nome": "Nome do perfume",
+      "familia": "Fresco/Cítrico | Amadeirado | Doce/Gourmand | Especiado/Oriental | Aquático | Aromático/Verde | Floral | Frutado | Talco/Fougère",
+      "faixa_preco": "R$ 400–550",
+      "por_que": "1 frase objetiva",
+      "quando_usar": "1 frase objetiva"
+    }
+  ],
+  "pergunta_extra": "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!"
+}
+`;
 
-Seu papel é:
-1. Analisar a coleção de perfumes
-2. Identificar família de CADA perfume
-3. Calcular família DOMINANTE
-4. Identificar TOP 3 famílias que FALTAM
-5. Sugerir 3 perfumes que EQUILIBREM (das famílias que faltam)
+export default async function handler(req, res) {
+  setCors(req, res);
 
-## REGRAS DAS RECOMENDAÇÕES:
+  // Preflight
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
 
-1. ❌ NUNCA sugerir da família DOMINANTE
-2. ✅ PRIORIZAR famílias com 0 perfumes (faltam)
-3. ✅ Cada recomendação de família DIFERENTE
-4. ✅ Respeitar clima/ambiente/orçamento
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Use POST" });
+  }
 
-Exemplo:
-- Dominante: Doce/Gourmand (66%)
-- Faltam: Fresco, Aquático, Amadeirado
-- Recomendações: ✅ Prada Luna Rossa (Fresco), ✅ Acqua di Gio (Aquático), ✅ Bleu de Chanel (Amadeirado)
-- ERRADO: ❌ Eros (Doce) - É da família dominante!
+  try {
+    // Parse defensivo (Vercel às vezes manda string)
+    const body =
+      typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : (req.body || {});
 
-Responda APENAS com JSON válido, sem markdown.`;
+    // Compatibilidade total com fronts antigos e novos
+    const incoming =
+      (body.diagnostico ?? body.prompt ?? body.text ?? "").toString().trim();
 
-    // Usar chat.completions.create com gpt-4o-mini
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
+    if (!incoming) {
+      return res.status(400).json({ error: "Campo 'diagnostico' vazio." });
+    }
+
+    const diagnostico =
+      incoming.length > 6000 ? incoming.slice(0, 6000) : incoming;
+
+    const response = await client.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: diagnostico },
       ],
-      max_tokens: 1200,
-      temperature: 0.7,
+      max_output_tokens: 450,
     });
 
-    // Extrair resposta
-    const text = response.choices[0]?.message?.content || "";
-    console.log('✅ Resposta da IA (primeiros 200 chars):', text.substring(0, 200));
-
-    // Limpar possível markdown
-    const cleanText = text.replace(/```json\n?|\n?```/g, '').trim();
+    const text =
+      response.output
+        ?.flatMap(o => o.content || [])
+        ?.filter(c => c.type === "output_text")
+        ?.map(c => c.text)
+        ?.join("") || "";
 
     let data;
     try {
-      data = JSON.parse(cleanText);
-      console.log('✅ JSON parseado com sucesso');
+      data = JSON.parse(text);
     } catch (e) {
-      console.error('❌ Erro ao parsear JSON:', e);
-      console.error('Texto recebido:', cleanText);
       // fallback se o modelo sair do formato
       data = {
-        error: "Erro ao processar resposta da IA",
+        titulo: "Resposta do Perfumista",
+        subtitulo: "Não foi possível formatar em cards automaticamente.",
+        recomendacoes: [],
+        pergunta_extra:
+          "Quer mais alguma sugestão? Digite a situação, clima, ambiente e orçamento!",
         raw: text,
       };
     }
 
-    // Retornar JSON
-    return res.status(200).json(data);
+    // também devolve "text" para compatibilidade com fronts antigos
+    return res.status(200).json({ ...data, text });
 
   } catch (err) {
-    console.error('❌ Erro na API:', err);
     const status = err?.status || 500;
     const msg = err?.message || "Erro desconhecido";
     return res.status(status).json({ error: msg });
