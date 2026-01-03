@@ -245,12 +245,27 @@ ORÇAMENTO: [ORCAMENTO]
 PERGUNTA DO USUÁRIO:
 [PERGUNTA]
 
+🚫 REGRA ANTI-DUPLICATA OBRIGATÓRIA:
+NUNCA sugerir perfumes que o usuário JÁ TEM na coleção, incluindo:
+- Variações (EDT, EDP, Parfum, Intense)
+- Flankers (ex: se tem Eros, NÃO sugira Eros Flame)
+- Mesma marca + nome similar
+
+EXEMPLOS DE BLOQUEIO:
+- Tem "Sauvage" → ❌ NÃO sugerir: Sauvage EDP, Sauvage Parfum, Sauvage Elixir
+- Tem "Eros" → ❌ NÃO sugerir: Eros Flame, Eros EDT, Eros Energy
+- Tem "Invictus" → ❌ NÃO sugerir: Invictus Victory, Invictus Aqua, Invictus Intense
+
+🎯 PRIORIZE PERFUMES FORA DO HYPE:
+1ª e 2ª sugestões: <5.000 reviews Fragantica (nichos, hidden gems)
+3ª sugestão: Pode ser mais conhecido se muito adequado
+
 REGRAS:
-1. Consulte Fragantica para informações precisas
-2. SEMPRE retorne EXATAMENTE 3 sugestões
-3. Considere a coleção atual do usuário
-4. Evite sugerir perfumes que o usuário já tem
-5. Se o usuário perguntar sobre 1 perfume específico, analise se combina com a coleção e sugira 2 alternativas similares
+1. NUNCA sugira perfumes que o usuário já tem (incluindo variações e flankers)
+2. Consulte Fragantica para informações precisas
+3. SEMPRE retorne EXATAMENTE 3 sugestões
+4. Priorize nichos (<5k reviews) nas primeiras 2 sugestões
+5. Se o usuário perguntar sobre 1 perfume específico, analise se combina e sugira 2 alternativas similares (mas diferentes da coleção)
 6. Respeite clima, ambiente e orçamento
 7. Perfumes REAIS disponíveis no Brasil
 
