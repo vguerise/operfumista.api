@@ -1,10 +1,11 @@
+// VERSÃO FINAL - CORS 100% igual ao teste que funcionou + OpenAI + suas instruções
+
 import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Suas instruções originais completas
 const SYSTEM_PROMPT = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
 
 Seu papel é:
@@ -119,19 +120,8 @@ PASSO 8: Sugerir TOP 3 recomendações
 REGRAS CRÍTICAS DAS RECOMENDAÇÕES:
 
 1. **NUNCA sugerir perfume da FAMÍLIA DOMINANTE** ❌
-   - Se dominante é "Amadeirado", NÃO sugira perfume amadeirado
-   - Se dominante é "Doce/Gourmand", NÃO sugira perfume doce
-   - Se dominante é "Especiado/Oriental", NÃO sugira perfume especiado
-
 2. **PRIORIZAR famílias que FALTAM (0 perfumes)**
-   - Primeira prioridade: famílias com 0 perfumes
-   - Segunda prioridade: famílias com 1 perfume
-
 3. **NUNCA sugerir 2+ perfumes da MESMA família**
-   - Cada recomendação deve ser de família DIFERENTE
-   - Exemplo CORRETO: Fresco, Aquático, Amadeirado
-   - Exemplo ERRADO: Fresco, Fresco, Amadeirado ❌
-
 4. Adequado para clima
 5. Adequado para ambiente
 6. Dentro do orçamento
@@ -140,9 +130,7 @@ REGRAS CRÍTICAS DAS RECOMENDAÇÕES:
 
 FORMATO DE RESPOSTA (JSON OBRIGATÓRIO):
 
-⚠️ CRÍTICO: RESPONDA APENAS COM JSON PURO. 
-❌ SEM: markdown (```), texto antes/depois, explicações
-✅ APENAS: objeto JSON válido começando com { e terminando com }
+Responda APENAS com JSON puro (sem markdown, sem texto extra).
 
 {
   "analise_colecao": {
@@ -185,22 +173,22 @@ FORMATO DE RESPOSTA (JSON OBRIGATÓRIO):
       "nome": "Prada Luna Rossa Ocean",
       "familia": "Fresco/Cítrico",
       "faixa_preco": "R$ 400-520",
-      "por_que": "Preenche lacuna Fresco/Cítrico, ideal para clima quente e ambiente fechado",
-      "quando_usar": "Dia a dia, verão, trabalho casual, projeta moderado sem incomodar"
+      "por_que": "Preenche lacuna Fresco/Cítrico",
+      "quando_usar": "Dia a dia, verão, trabalho"
     },
     {
       "nome": "Acqua di Gio Profumo",
       "familia": "Aquático",
       "faixa_preco": "R$ 450-600",
-      "por_que": "Adiciona aquático sofisticado que falta, versátil para clima temperado",
-      "quando_usar": "Trabalho, ocasiões formais, projeta bem sem ser agressivo"
+      "por_que": "Adiciona aquático que falta",
+      "quando_usar": "Trabalho, ocasiões formais"
     },
     {
       "nome": "Eros Versace EDT",
       "familia": "Doce/Gourmand",
       "faixa_preco": "R$ 350-480",
-      "por_que": "Completa com doçura equilibrada, perfeito para noites e eventos sociais",
-      "quando_usar": "Noites, encontros, eventos sociais, fixação forte e marcante"
+      "por_que": "Completa com doçura",
+      "quando_usar": "Noites, encontros"
     }
   ],
   "contexto_aplicado": {
@@ -208,32 +196,10 @@ FORMATO DE RESPOSTA (JSON OBRIGATÓRIO):
     "ambiente": "🏢 Fechado",
     "orcamento": "R$ 300-500"
   }
-}
-
-REGRAS CRÍTICAS FINAIS:
-
-❌ NUNCA:
-- Inventar perfumes
-- Sugerir femininos
-- Ignorar orçamento
-- Sugerir da família dominante
-- Sugerir 2+ da mesma família
-- Adicionar markdown/texto extra
-- Classificar errado
-
-✅ SEMPRE:
-- Analisar cada perfume
-- Usar famílias corretas
-- Priorizar lacunas
-- Evitar família dominante
-- Respeitar contexto
-- Retornar APENAS JSON puro
-- Campos "por_que" e "quando_usar": máximo 140 chars cada
-
-Agora analise a coleção e retorne APENAS o JSON (sem markdown, sem texto adicional).`;
+}`;
 
 export default async function handler(req, res) {
-  // ⚠️ CORS EXATAMENTE COMO NO TESTE QUE FUNCIONOU
+  // ⚠️ CORS EXATAMENTE COMO NO TESTE QUE FUNCIONOU - LINHA POR LINHA
   const origin = req.headers.origin;
   
   if (origin === "https://vguerise.github.io") {
@@ -249,89 +215,63 @@ export default async function handler(req, res) {
   
   console.log("📥 Recebido:", req.method, "de", origin);
   
-  // Preflight OPTIONS
+  // Preflight OPTIONS - EXATAMENTE COMO NO TESTE
   if (req.method === "OPTIONS") {
     console.log("✅ OPTIONS - respondendo 200");
     return res.status(200).end();
   }
   
-  // Apenas POST permitido
-  if (req.method !== "POST") {
-    console.log("❌ Método não permitido:", req.method);
-    return res.status(405).json({ error: "Método não permitido" });
-  }
-
-  try {
-    const { diagnostico } = req.body;
-
-    if (!diagnostico || typeof diagnostico !== "string") {
-      console.log("❌ Diagnóstico inválido");
-      return res.status(400).json({ error: "Campo 'diagnostico' é obrigatório" });
-    }
-
-    console.log('📋 Diagnóstico OK, tamanho:', diagnostico.length);
-
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: diagnostico },
-      ],
-      max_tokens: 1800,
-      temperature: 0.7,
-    });
-
-    const text = response.choices[0]?.message?.content || "";
-    console.log('📨 Resposta OpenAI (tamanho):', text.length);
-
-    // Limpeza agressiva
-    let cleanText = text.trim();
-    cleanText = cleanText.replace(/```json\n?/g, '');
-    cleanText = cleanText.replace(/```\n?/g, '');
-    
-    const firstBrace = cleanText.indexOf('{');
-    if (firstBrace > 0) {
-      cleanText = cleanText.substring(firstBrace);
-    }
-    
-    const lastBrace = cleanText.lastIndexOf('}');
-    if (lastBrace !== -1 && lastBrace < cleanText.length - 1) {
-      cleanText = cleanText.substring(0, lastBrace + 1);
-    }
-    
-    cleanText = cleanText.trim();
-
-    let data;
+  // POST - Agora com OpenAI (única diferença do teste)
+  if (req.method === "POST") {
     try {
-      data = JSON.parse(cleanText);
-      console.log('✅ JSON parseado');
+      const { diagnostico } = req.body;
       
-      // Validação básica
-      if (!data.analise_colecao || !data.recomendacoes) {
-        console.error('❌ Estrutura inválida');
-        return res.status(500).json({
-          error: "Estrutura JSON inválida",
-          detalhes: "Falta analise_colecao ou recomendacoes"
-        });
+      if (!diagnostico) {
+        console.log("❌ Diagnóstico vazio");
+        return res.status(400).json({ error: "Diagnóstico obrigatório" });
       }
       
-      console.log('✅ Validação OK');
+      console.log("✅ POST - chamando OpenAI");
       
-    } catch (e) {
-      console.error('❌ Parse error:', e.message);
-      return res.status(500).json({
-        error: "Erro ao processar JSON",
-        detalhes: e.message
+      const response = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: diagnostico },
+        ],
+        max_tokens: 1800,
+        temperature: 0.7,
       });
+      
+      const text = response.choices[0]?.message?.content || "";
+      console.log("📨 Resposta OpenAI OK");
+      
+      // Limpar markdown
+      let cleanText = text.trim();
+      cleanText = cleanText.replace(/```json\n?/g, '');
+      cleanText = cleanText.replace(/```\n?/g, '');
+      
+      const firstBrace = cleanText.indexOf('{');
+      if (firstBrace > 0) {
+        cleanText = cleanText.substring(firstBrace);
+      }
+      
+      const lastBrace = cleanText.lastIndexOf('}');
+      if (lastBrace !== -1 && lastBrace < cleanText.length - 1) {
+        cleanText = cleanText.substring(0, lastBrace + 1);
+      }
+      
+      const data = JSON.parse(cleanText.trim());
+      console.log("✅ JSON parseado");
+      
+      return res.status(200).json(data);
+      
+    } catch (err) {
+      console.error("❌ Erro:", err);
+      return res.status(500).json({ error: err.message });
     }
-
-    console.log('✅ Retornando sucesso');
-    return res.status(200).json(data);
-
-  } catch (err) {
-    console.error('❌ Erro geral:', err);
-    return res.status(500).json({
-      error: err?.message || "Erro desconhecido"
-    });
   }
+  
+  // Outros métodos
+  return res.status(405).json({ error: "Método não permitido" });
 }
