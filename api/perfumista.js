@@ -4,7 +4,6 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Domínios que podem chamar a API
 const ALLOWED_ORIGINS = new Set([
   "https://vguerise.github.io",
 ]);
@@ -24,134 +23,241 @@ function setCors(req, res) {
   res.setHeader("Access-Control-Max-Age", "86400");
 }
 
+// Suas instruções originais (são excelentes!)
 const SYSTEM_PROMPT = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
 
-## FAMÍLIAS OLFATIVAS DISPONÍVEIS (escolha SEMPRE entre estas):
-1. Amadeirado
-2. Aromático
-3. Aquático/Fresco
-4. Cítrico
-5. Doce/Gourmand
-6. Fougère
-7. Oriental/Especiado
-8. Fresco/Verde
-9. Floral
+Seu papel é:
+1. Analisar a coleção de perfumes que o usuário possui
+2. Identificar a FAMÍLIA OLFATIVA de CADA perfume
+3. Calcular qual família é DOMINANTE e qual a porcentagem
+4. Identificar TOP 3 famílias que FALTAM (lacunas mais importantes)
+5. Determinar o NÍVEL do colecionador
+6. Verificar se a coleção está EQUILIBRADA
+7. Sugerir exatamente 3 perfumes que EQUILIBREM a coleção
 
-## REGRAS CRÍTICAS:
+FAMÍLIAS OLFATIVAS (use EXATAMENTE estes nomes):
 
-### ❌ NUNCA SUGIRA PERFUMES DA FAMÍLIA DOMINANTE
-- Se 50%+ da coleção é "Doce/Gourmand", NÃO sugira perfume doce!
-- Se 66% é "Amadeirado", NÃO sugira amadeirado!
+1. Fresco/Cítrico
+2. Aromático/Verde
+3. Doce/Gourmand
+4. Amadeirado
+5. Especiado/Oriental
+6. Aquático
+7. Talco/Fougère
+8. Floral
+9. Frutado
 
-### ✅ PRIORIDADES DAS RECOMENDAÇÕES:
-1. Sugerir APENAS das famílias que FALTAM (0 perfumes)
-2. Cada recomendação de família DIFERENTE
-3. Respeitar clima/ambiente/orçamento do usuário
+PROCESSO DE ANÁLISE (PASSO A PASSO):
 
-## FORMATO JSON OBRIGATÓRIO:
+PASSO 1: Identificar família de CADA perfume
+Para cada perfume da lista do usuário, identifique sua família PRINCIPAL.
 
-Responda APENAS com este JSON exato (sem markdown, sem \`\`\`json):
+Exemplos:
+- "Dior Sauvage EDT" → Aromático/Verde
+- "Bleu de Chanel" → Amadeirado
+- "Invictus" → Aquático
+- "Eros Versace" → Doce/Gourmand
+- "Creed Aventus" → Frutado
+- "1 Million" → Especiado/Oriental
+
+PASSO 2: Contar quantos perfumes de cada família
+Agrupe os perfumes por família e conte quantos tem de cada.
+
+PASSO 3: Identificar família DOMINANTE
+A família com MAIS perfumes é a dominante.
+Calcule a porcentagem: (perfumes dessa família / total) × 100
+
+PASSO 4: Identificar TOP 3 famílias que FALTAM
+Famílias com 0 perfumes são lacunas.
+Ordene por importância para o clima/ambiente/orçamento do usuário.
+Retorne as TOP 3 mais importantes.
+
+PASSO 5: Determinar NÍVEL do colecionador
+
+🎯 Iniciante (1-5 perfumes):
+- Análise: "Você está começando. Foque nas 5 funções básicas (calor, frio, trabalho, noite, assinatura) antes de diversificar."
+
+✅ Intermediário (6-10 perfumes, equilibrado):
+- Condição: 4+ famílias representadas E dominante < 50%
+- Análise: "Coleção crescendo bem. Continue diversificando e evite redundâncias na família dominante."
+
+⚠️ Intermediário com desequilíbrio (6-10 perfumes, desbalanceado):
+- Condição: Menos de 4 famílias OU dominante ≥ 50%
+- Análise: "Você tem quantidade de intermediário, mas está comprando muito da mesma família. Diversifique antes de expandir."
+
+🔥 Avançado (11-15 perfumes, equilibrado):
+- Condição: 5+ famílias E dominante ≤ 40%
+- Análise: "Coleção madura e equilibrada. Cada novo perfume deve preencher uma subfunção específica (ex: calor extremo, trabalho formal)."
+
+⚠️ Avançado com redundância (11-15 perfumes, desbalanceado):
+- Condição: Menos de 5 famílias OU dominante > 40%
+- Análise: "Você tem muitos perfumes, mas com sobreposição. Identifique os redundantes e considere vender/trocar antes de comprar mais."
+
+👑 Colecionador equilibrado (16+ perfumes, equilibrado):
+- Condição: dominante ≤ 35% E 5+ famílias
+- Análise: "Coleção extensa e diversificada. Agora o foco é: cada perfume tem função clara ou você está acumulando?"
+
+⚠️ Colecionador com acúmulo (16+ perfumes, desbalanceado):
+- Condição: dominante > 35% OU menos de 5 famílias
+- Análise: "Você tem MUITOS perfumes, mas está acumulando redundâncias. Pare de comprar. Venda os que não usa e reorganize."
+
+PASSO 6: Verificar STATUS de equilíbrio
+
+✅ Equilibrado (dominante < 35%):
+- Status: "equilibrada"
+- Emoji: "✅"
+
+⚠️ Leve desequilíbrio (dominante 35-49%):
+- Status: "leve_desequilibrio"
+- Emoji: "⚠️"
+
+🚨 Desbalanceado (dominante ≥ 50%):
+- Status: "desbalanceada"
+- Emoji: "🚨"
+
+PASSO 7: Considerar CONTEXTO para recomendações
+
+Clima:
+- Quente → priorize Fresco/Cítrico, Aquático
+- Frio → priorize Amadeirado, Especiado/Oriental
+- Temperado → versátil, qualquer família serve
+
+Ambiente:
+- Fechado → evite projeção excessiva, prefira discretos
+- Aberto → pode ser mais intenso
+- Ambos → versátil
+
+Orçamento (respeite SEMPRE - Não focar nas mesmas marcas em toda resposta):
+- Até R$300: Natura, O Boticário, Granado, Phebo, Egeo dentre outras. (R$ 100-300)
+- R$300-500: Versace, Hugo Boss, Calvin Klein, Paco Rabanne (R$ 300-500)
+- R$500-1000: Dior, Chanel, YSL, Prada (R$ 500-1300)
+- Acima R$1000: Tom Ford, Creed, MFK, dentre outros. Byredo (R$ 800 a sem limite)
+
+PASSO 8: Sugerir TOP 3 recomendações
+
+REGRAS CRÍTICAS DAS RECOMENDAÇÕES:
+
+1. **NUNCA sugerir perfume da FAMÍLIA DOMINANTE** ❌
+   - Se dominante é "Amadeirado", NÃO sugira perfume amadeirado
+   - Se dominante é "Doce/Gourmand", NÃO sugira perfume doce
+   - Se dominante é "Especiado/Oriental", NÃO sugira perfume especiado
+
+2. **PRIORIZAR famílias que FALTAM (0 perfumes)**
+   - Primeira prioridade: famílias com 0 perfumes
+   - Segunda prioridade: famílias com 1 perfume
+
+3. **NUNCA sugerir 2+ perfumes da MESMA família**
+   - Cada recomendação deve ser de família DIFERENTE
+   - Exemplo CORRETO: Fresco, Aquático, Amadeirado
+   - Exemplo ERRADO: Fresco, Fresco, Amadeirado ❌
+
+4. Adequado para clima
+5. Adequado para ambiente
+6. Dentro do orçamento
+7. Disponível no Brasil
+8. Perfume REAL (nunca invente!)
+
+FORMATO DE RESPOSTA (JSON OBRIGATÓRIO):
+
+⚠️ CRÍTICO: RESPONDA APENAS COM JSON PURO. 
+❌ SEM: markdown (```), texto antes/depois, explicações
+✅ APENAS: objeto JSON válido começando com { e terminando com }
 
 {
   "analise_colecao": {
-    "total_perfumes": <número total de perfumes>,
-    "familias_representadas": <quantas famílias diferentes de 1-9>,
-    "familia_dominante": {
-      "nome": "<nome da família com mais perfumes>",
-      "quantidade": <quantos perfumes dessa família>,
-      "porcentagem": <% arredondado sem casas decimais>
-    },
-    "nivel": {
-      "emoji": "🌱 ou 🌿 ou 🌳 ou 🏆",
-      "titulo": "Iniciante ou Colecionador Intermediário ou Colecionador Avançado ou Mestre Perfumista",
-      "descricao": "Descrição breve do nível"
-    },
+    "total_perfumes": 3,
+    "familias_representadas": 3,
     "perfumes_por_familia": {
-      "Amadeirado": <quantidade>,
-      "Aromático": <quantidade>,
-      "Aquático/Fresco": <quantidade>,
-      "Cítrico": <quantidade>,
-      "Doce/Gourmand": <quantidade>,
-      "Fougère": <quantidade>,
-      "Oriental/Especiado": <quantidade>,
-      "Fresco/Verde": <quantidade>,
-      "Floral": <quantidade>
+      "Amadeirado": 2,
+      "Aromático/Verde": 1,
+      "Aquático": 0,
+      "Doce/Gourmand": 0,
+      "Especiado/Oriental": 0,
+      "Floral": 0,
+      "Fresco/Cítrico": 0,
+      "Frutado": 0,
+      "Talco/Fougère": 0
     },
-    "equilibrio": {
-      "mensagem": "Mensagem sobre o equilíbrio da coleção"
+    "familia_dominante": {
+      "nome": "🪵 Amadeirado",
+      "quantidade": 2,
+      "porcentagem": 66
     },
     "top3_faltando": [
-      "Família que falta 1",
-      "Família que falta 2",
-      "Família que falta 3"
-    ]
+      "🍋 Fresco/Cítrico",
+      "🍯 Doce/Gourmand",
+      "🌊 Aquático"
+    ],
+    "nivel": {
+      "emoji": "🎯",
+      "titulo": "INICIANTE",
+      "descricao": "Você está começando. Foque nas 5 funções básicas (calor, frio, trabalho, noite, assinatura) antes de diversificar."
+    },
+    "equilibrio": {
+      "status": "leve_desequilibrio",
+      "emoji": "⚠️",
+      "mensagem": "66% são Amadeirado - considere diversificar"
+    }
   },
   "recomendacoes": [
     {
-      "nome": "Nome do Perfume 1",
-      "familia": "Família (da lista de 9)",
-      "faixa_preco": "R$ 150-300 ou R$ 300-600 ou R$ 600+",
-      "por_que": "Explicação de por que equilibra a coleção",
-      "quando_usar": "Ocasião/clima/ambiente ideal"
+      "nome": "Prada Luna Rossa Ocean",
+      "familia": "Fresco/Cítrico",
+      "faixa_preco": "R$ 400-520",
+      "por_que": "Preenche lacuna Fresco/Cítrico, ideal para clima quente e ambiente fechado",
+      "quando_usar": "Dia a dia, verão, trabalho casual, projeta moderado sem incomodar"
     },
     {
-      "nome": "Nome do Perfume 2",
-      "familia": "Família DIFERENTE da anterior",
-      "faixa_preco": "...",
-      "por_que": "...",
-      "quando_usar": "..."
+      "nome": "Acqua di Gio Profumo",
+      "familia": "Aquático",
+      "faixa_preco": "R$ 450-600",
+      "por_que": "Adiciona aquático sofisticado que falta, versátil para clima temperado",
+      "quando_usar": "Trabalho, ocasiões formais, projeta bem sem ser agressivo"
     },
     {
-      "nome": "Nome do Perfume 3",
-      "familia": "Família DIFERENTE das 2 anteriores",
-      "faixa_preco": "...",
-      "por_que": "...",
-      "quando_usar": "..."
+      "nome": "Eros Versace EDT",
+      "familia": "Doce/Gourmand",
+      "faixa_preco": "R$ 350-480",
+      "por_que": "Completa com doçura equilibrada, perfeito para noites e eventos sociais",
+      "quando_usar": "Noites, encontros, eventos sociais, fixação forte e marcante"
     }
-  ]
+  ],
+  "contexto_aplicado": {
+    "clima": "🌡️ Quente",
+    "ambiente": "🏢 Fechado",
+    "orcamento": "R$ 300-500"
+  }
 }
 
-## NÍVEIS (baseado em total_perfumes):
-- 1-5 perfumes: 🌱 Iniciante
-- 6-15 perfumes: 🌿 Colecionador Intermediário
-- 16-30 perfumes: 🌳 Colecionador Avançado
-- 31+ perfumes: 🏆 Mestre Perfumista
+REGRAS CRÍTICAS FINAIS:
 
-## EXEMPLOS DE ANÁLISE:
+❌ NUNCA:
+- Inventar perfumes
+- Sugerir femininos
+- Ignorar orçamento
+- Sugerir da família dominante
+- Sugerir 2+ da mesma família
+- Adicionar markdown/texto extra
+- Classificar errado
 
-### Exemplo 1: Coleção desbalanceada
-Coleção: 6 perfumes (4 Doce/Gourmand, 1 Amadeirado, 1 Aquático)
-Dominante: Doce/Gourmand (67%)
-Faltam: Cítrico, Oriental/Especiado, Aromático
+✅ SEMPRE:
+- Analisar cada perfume
+- Usar famílias corretas
+- Priorizar lacunas
+- Evitar família dominante
+- Respeitar contexto
+- Retornar APENAS JSON puro
+- Campos "por_que" e "quando_usar": máximo 140 chars cada
 
-Recomendações:
-❌ ERRADO: 1 More, Invictus Victory (ambos Doce - é a família dominante!)
-✅ CERTO: Acqua di Gio Profondo (Aquático), Versace Pour Homme (Aromático), Terre d'Hermès (Cítrico)
-
-### Exemplo 2: Coleção equilibrada
-Coleção: 12 perfumes (distribuídos em 6 famílias)
-Dominante: Amadeirado (25%)
-Faltam: Floral, Fougère, Cítrico
-
-Recomendações das famílias que faltam.
-
-## IMPORTANTE:
-- Analise CADA perfume da lista do usuário
-- Calcule a família dominante corretamente
-- NÃO invente perfumes - use marcas conhecidas no Brasil
-- Respeite o orçamento informado
-- Considere clima/ambiente do usuário`;
+Agora analise a coleção e retorne APENAS o JSON (sem markdown, sem texto adicional).`;
 
 export default async function handler(req, res) {
-  // Configurar CORS
   setCors(req, res);
 
-  // Tratar preflight OPTIONS
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  // Apenas POST permitido
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -163,57 +269,116 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Campo 'diagnostico' é obrigatório" });
     }
 
-    console.log('📋 Diagnóstico recebido (primeiros 100 chars):', diagnostico.substring(0, 100));
+    console.log('📋 Diagnóstico recebido:', diagnostico.substring(0, 150));
 
-    // Usar chat.completions.create com gpt-4o-mini
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: diagnostico },
       ],
-      max_tokens: 1500,
+      max_tokens: 1800,
       temperature: 0.7,
     });
 
-    // Extrair resposta
     const text = response.choices[0]?.message?.content || "";
-    console.log('✅ Resposta da IA (primeiros 300 chars):', text.substring(0, 300));
+    console.log('📨 Resposta bruta (primeiros 400 chars):', text.substring(0, 400));
 
-    // Limpar possível markdown
-    const cleanText = text.replace(/```json\n?|\n?```/g, '').trim();
+    // Limpeza agressiva de markdown e texto extra
+    let cleanText = text.trim();
+    
+    // Remover markdown
+    cleanText = cleanText.replace(/```json\n?/g, '');
+    cleanText = cleanText.replace(/```\n?/g, '');
+    cleanText = cleanText.replace(/^```/g, '');
+    cleanText = cleanText.replace(/```$/g, '');
+    
+    // Remover qualquer texto antes do primeiro {
+    const firstBrace = cleanText.indexOf('{');
+    if (firstBrace > 0) {
+      cleanText = cleanText.substring(firstBrace);
+    }
+    
+    // Remover qualquer texto depois do último }
+    const lastBrace = cleanText.lastIndexOf('}');
+    if (lastBrace !== -1 && lastBrace < cleanText.length - 1) {
+      cleanText = cleanText.substring(0, lastBrace + 1);
+    }
+    
+    cleanText = cleanText.trim();
+    
+    console.log('🧹 JSON limpo (primeiros 400 chars):', cleanText.substring(0, 400));
 
     let data;
     try {
       data = JSON.parse(cleanText);
-      console.log('✅ JSON parseado com sucesso');
+      console.log('✅ JSON parseado');
       
-      // Validar estrutura
-      if (!data.analise_colecao || !data.recomendacoes) {
-        throw new Error('Estrutura JSON inválida');
+      // Validação detalhada da estrutura
+      const errors = [];
+      
+      if (!data.analise_colecao) {
+        errors.push('Falta analise_colecao');
+      } else {
+        if (typeof data.analise_colecao.total_perfumes !== 'number') {
+          errors.push('Falta total_perfumes');
+        }
+        if (typeof data.analise_colecao.familias_representadas !== 'number') {
+          errors.push('Falta familias_representadas');
+        }
+        if (!data.analise_colecao.perfumes_por_familia) {
+          errors.push('Falta perfumes_por_familia');
+        }
+        if (!data.analise_colecao.familia_dominante) {
+          errors.push('Falta familia_dominante');
+        }
+        if (!data.analise_colecao.top3_faltando) {
+          errors.push('Falta top3_faltando');
+        }
+        if (!data.analise_colecao.nivel) {
+          errors.push('Falta nivel');
+        }
+        if (!data.analise_colecao.equilibrio) {
+          errors.push('Falta equilibrio');
+        }
       }
       
-      console.log('✅ Estrutura validada');
+      if (!data.recomendacoes || !Array.isArray(data.recomendacoes)) {
+        errors.push('Falta recomendacoes (array)');
+      } else if (data.recomendacoes.length !== 3) {
+        errors.push(`Recomendações: esperado 3, recebido ${data.recomendacoes.length}`);
+      }
+      
+      if (errors.length > 0) {
+        console.error('❌ Erros de validação:', errors);
+        return res.status(500).json({
+          error: "Estrutura JSON inválida",
+          detalhes: errors,
+          json_recebido: data
+        });
+      }
+      
+      console.log('✅ Estrutura validada com sucesso');
       
     } catch (e) {
-      console.error('❌ Erro ao parsear JSON:', e);
-      console.error('Texto recebido:', cleanText);
+      console.error('❌ Erro ao parsear JSON:', e.message);
+      console.error('Texto problemático:', cleanText.substring(0, 500));
       
-      // Fallback de erro
-      return res.status(500).json({ 
-        error: "Erro ao processar resposta da IA",
-        details: e.message,
-        raw: text.substring(0, 500)
+      return res.status(500).json({
+        error: "Erro ao processar JSON da IA",
+        detalhes: e.message,
+        texto_recebido: cleanText.substring(0, 500)
       });
     }
 
-    // Retornar JSON válido
+    console.log('✅ Retornando resposta válida');
     return res.status(200).json(data);
 
   } catch (err) {
     console.error('❌ Erro na API:', err);
-    const status = err?.status || 500;
-    const msg = err?.message || "Erro desconhecido";
-    return res.status(status).json({ error: msg });
+    return res.status(500).json({
+      error: err?.message || "Erro desconhecido",
+      tipo: err?.name || "unknown"
+    });
   }
 }
