@@ -26,11 +26,6 @@ function setCors(req, res) {
 
 const SYSTEM_PROMPT = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
 
-Seu papel é:
-1. Analisar a coleção de perfumes que o usuário possui
-
-const SYSTEM_PROMPT = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
-
 **REGRA CRÍTICA DAS RECOMENDAÇÕES:**
 NUNCA sugira perfumes da FAMÍLIA DOMINANTE! Se 66% da coleção é "Doce/Gourmand", NÃO sugira perfume doce!
 
@@ -55,6 +50,29 @@ Exemplo:
 - ERRADO: ❌ Eros (Doce) - É da família dominante!
 
 Responda APENAS com JSON válido, sem markdown.`;
+
+export default async function handler(req, res) {
+  // Configurar CORS
+  setCors(req, res);
+
+  // Tratar preflight OPTIONS
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  // Apenas POST permitido
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método não permitido" });
+  }
+
+  try {
+    const { diagnostico } = req.body;
+
+    if (!diagnostico || typeof diagnostico !== "string") {
+      return res.status(400).json({ error: "Campo 'diagnostico' é obrigatório" });
+    }
+
+    console.log('📋 Diagnóstico recebido (primeiros 100 chars):', diagnostico.substring(0, 100));
 
     // Usar chat.completions.create com gpt-4o-mini
     const response = await client.chat.completions.create({
