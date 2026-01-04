@@ -156,6 +156,42 @@ ESTRATÉGIA DE RECOMENDAÇÃO:
 - OU: Outro nicho diferente
 - Tom: "Opção versátil" ou "Se preferir nicho, [alternativa]"
 
+🎯 CONSIDERE A IDADE DO USUÁRIO (OBRIGATÓRIO):
+
+A idade influencia MUITO qual perfume é adequado. Use estas diretrizes:
+
+18-25 anos:
+- Perfumes frescos, energéticos, modernos, jovens
+- Evite: Muito clássicos, muito discretos
+- Exemplos adequados: Invictus, 212 VIP, Dylan Blue
+- Nichos jovens: Lattafa Khamrah, Armaf Club de Nuit Sillage
+
+25-35 anos:
+- Versáteis, sofisticados, sexy, contemporâneos
+- Melhor fase para experimentar de tudo
+- Exemplos adequados: Bleu de Chanel, Sauvage, Eros
+- Nichos versáteis: Lalique Encre Noire, Moschino Toy Boy
+
+35-45 anos:
+- Elegantes, amadeirados, maduros, refinados
+- Evite: Muito juvenis, muito sintéticos
+- Exemplos adequados: Dior Homme Intense, Terre d'Hermès
+- Nichos maduros: Rochas Moustache, Van Cleef Midnight in Paris
+
+45-60 anos:
+- Clássicos, atemporais, discretos, nobres
+- Evite: Doces sintéticos, muito intensos
+- Exemplos adequados: Eau Sauvage, Aramis, Bvlgari Man
+- Nichos clássicos: Lalique Encre Noire original, Penhaligon's
+
+60+ anos:
+- Tradicionais, respeitáveis, suaves, elegantes
+- Evite: Jovens, sintéticos, muito fortes
+- Exemplos adequados: Acqua di Parma Colonia, Chanel Égoïste
+- Nichos suaves: Rochas Eau de Rochas Homme, 4711
+
+IMPORTANTE: Um perfume "jovem" (ex: Invictus) em alguém de 55 anos pode parecer inapropriado. Um perfume "sênior" (ex: Aramis) em alguém de 22 anos pode parecer "velho demais".
+
 VALIDAÇÃO ANTES DE RECOMENDAR:
 
 Para cada perfume, siga este checklist OBRIGATÓRIO:
@@ -296,10 +332,21 @@ O usuário já possui estes perfumes: [COLECAO_ATUAL]
 
 CLIMA: [CLIMA]
 AMBIENTE: [AMBIENTE]
+IDADE: [IDADE] anos
 ORÇAMENTO: [ORCAMENTO]
 
 PERGUNTA DO USUÁRIO:
 [PERGUNTA]
+
+🎯 CONSIDERE A IDADE NAS SUGESTÕES:
+
+18-25 anos: Perfumes frescos, energéticos, modernos, jovens (Ex: Invictus, 212 VIP)
+25-35 anos: Versáteis, sofisticados, sexy, contemporâneos (Ex: Bleu de Chanel, Sauvage)
+35-45 anos: Elegantes, amadeirados, maduros, refinados (Ex: Dior Homme Intense, Terre d'Hermès)
+45-60 anos: Clássicos, atemporais, discretos, nobres (Ex: Eau Sauvage, Aramis)
+60+ anos: Tradicionais, respeitáveis, suaves, elegantes (Ex: Acqua di Parma Colonia, Chanel Égoïste)
+
+IMPORTANTE: A idade influencia fortemente qual perfume é adequado. Um perfume "jovem" pode parecer imaturo em alguém de 50+, e um perfume "sênior" pode parecer "velho demais" para alguém de 20 anos.
 
 🚫 REGRA ANTI-DUPLICATA OBRIGATÓRIA:
 NUNCA sugerir perfumes que o usuário JÁ TEM na coleção, incluindo:
@@ -436,13 +483,63 @@ export default async function handler(req, res) {
   
   if (req.method === "POST") {
     try {
-      const { diagnostico, pergunta, colecao, clima, ambiente, orcamento } = req.body;
+      const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, clima, ambiente, idade, orcamento } = req.body;
       
       let prompt = "";
       let userMessage = "";
       
       // Detecta tipo de request
-      if (diagnostico) {
+      if (iniciar_colecao) {
+        // INICIAR COLEÇÃO DO ZERO
+        console.log("✅ POST - Iniciar coleção");
+        
+        prompt = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira.
+
+SITUAÇÃO: O usuário quer COMEÇAR uma coleção do zero.
+
+CONTEXTO DO USUÁRIO:
+Clima: ${clima || 'Temperado'}
+Ambiente: ${ambiente || 'Ambos'}
+Idade: ${idade || '25-35'} anos
+Orçamento: ${orcamento || 'R$ 300-500'}
+
+OBJETIVO:
+Sugira 3 perfumes ESSENCIAIS para começar uma coleção, cobrindo as 3 funções básicas:
+
+1. DIA/TRABALHO - Versátil, discreto, profissional, adequado para ambiente de trabalho
+2. NOITE/SOCIAL - Marcante, sofisticado, sexy, para eventos e encontros
+3. VERSÁTIL - Funciona tanto dia quanto noite, curinga da coleção
+
+REGRAS IMPORTANTES:
+- Considere a IDADE do usuário (perfumes adequados à faixa etária)
+- Respeite o ORÇAMENTO
+- Priorize NICHOS ACESSÍVEIS (<5k reviews Fragantica)
+- Evite hypados mainstream (>20k reviews)
+- Considere o CLIMA (quente→frescos, frio→amadeirados)
+
+IDADES E PERFIS:
+18-25: Frescos, energéticos, modernos
+25-35: Versáteis, sofisticados, contemporâneos
+35-45: Elegantes, amadeirados, maduros
+45-60: Clássicos, atemporais, discretos
+60+: Tradicionais, suaves, nobres
+
+RETORNE JSON (apenas isso, sem \`\`\`):
+{
+  "recomendacoes": [
+    {
+      "nome": "Nome do Perfume",
+      "familia": "Família Olfativa",
+      "faixa_preco": "R$ X-Y",
+      "por_que": "Explicação (máx 120 caracteres)",
+      "quando_usar": "Ocasiões (máx 80 caracteres)"
+    }
+  ]
+}`;
+        
+        userMessage = contexto || "Sugira 3 perfumes para começar minha coleção";
+        
+      } else if (diagnostico) {
         // ANÁLISE COMPLETA DA COLEÇÃO
         console.log("✅ POST - Análise completa");
         prompt = SYSTEM_PROMPT_ANALISE;
@@ -461,6 +558,7 @@ export default async function handler(req, res) {
           .replace("[COLECAO_ATUAL]", colecaoTexto)
           .replace("[CLIMA]", clima || "Temperado")
           .replace("[AMBIENTE]", ambiente || "Ambos")
+          .replace("[IDADE]", idade || "25-35")
           .replace("[ORCAMENTO]", orcamento || "R$ 300-500")
           .replace("[PERGUNTA]", pergunta);
         
