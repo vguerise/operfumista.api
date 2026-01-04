@@ -242,6 +242,50 @@ IMPORTANTE:
 - Mainstream tem seu lugar (funciona, fácil de testar, boa relação custo/benefício)
 - Objetivo é EQUILIBRAR, não excluir
 
+💰 REGRAS DE PRECIFICAÇÃO (CRÍTICO - PREÇOS REAIS BRASIL 2025):
+
+VOLUMETRIA PADRÃO: 100ml
+- SEMPRE busque o preço da versão 100ml
+- Se não existir 100ml, use a volumetria mais próxima (90ml, 120ml, 125ml)
+- NUNCA use preços de 30ml, 50ml ou edições reduzidas
+
+FAIXAS DE PREÇO REAIS (MERCADO BRASILEIRO 2025):
+
+Clones árabes premium (Lattafa, Armaf, Afnan):
+- R$ 150-400 (100ml)
+- Exemplos: Lattafa Khamrah R$ 200-350, Armaf CDNIM R$ 180-300
+
+Designers mainstream (Versace, Paco Rabanne, Diesel):
+- R$ 300-800 (100ml)
+- Exemplos: Versace Eros R$ 400-600, Invictus R$ 350-550, 1 Million R$ 400-600
+
+Designers premium (Dior, Chanel, YSL, Hermès):
+- R$ 600-1.500 (100ml)
+- Exemplos: Sauvage EDT R$ 450-650, Bleu de Chanel R$ 700-900, Terre d'Hermès R$ 800-1.200
+
+Nichos acessíveis (Lalique, Rochas, Moschino, Van Cleef):
+- R$ 400-1.200 (100ml)
+- Exemplos: Lalique Encre Noire R$ 400-600, Rochas Moustache R$ 500-800
+
+Nichos intermediários (Montblanc, Bulgari, Acqua di Parma):
+- R$ 800-2.000 (100ml)
+- Exemplos: Bvlgari Man in Black R$ 900-1.300, Acqua di Parma Colonia R$ 1.200-1.800
+
+Nichos premium (Nishane, Initio, Parfums de Marly, Xerjoff):
+- R$ 1.500-4.000+ (100ml)
+- Exemplos: Nishane Hacivat R$ 1.800-2.200, PDM Layton R$ 2.000-2.800, Xerjoff Naxos R$ 2.500-3.500
+
+Nichos ultra-premium (Creed, Tom Ford Private, Roja):
+- R$ 2.500-6.000+ (100ml)
+- Exemplos: Creed Aventus R$ 2.800-3.500, Tom Ford Oud Wood R$ 3.000-4.000, Roja Elysium R$ 4.500-6.000
+
+IMPORTANTE:
+- Use SEMPRE preços condizentes com a realidade do mercado brasileiro
+- Nichos custam CARO no Brasil (importação + impostos)
+- NÃO subestime preços de nichos premium
+- Quando em dúvida, pesquise lojas brasileiras oficiais
+- Prefira faixas realistas (ex: R$ 1.800-2.200) ao invés de valores genéricos
+
 
 PROCESSO DE ANÁLISE OBRIGATÓRIO (NÃO PULE ETAPAS):
 
@@ -384,6 +428,22 @@ REGRAS:
 7. Se o usuário perguntar sobre 1 perfume específico, analise se combina e sugira 2 alternativas similares (mas diferentes da coleção e de famílias vazias)
 8. Respeite clima, ambiente e orçamento
 9. Perfumes REAIS disponíveis no Brasil
+10. Use PREÇOS REAIS do mercado brasileiro (veja regras abaixo)
+
+💰 PRECIFICAÇÃO REALISTA (100ml - BRASIL 2025):
+- Clones árabes: R$ 150-400
+- Designers mainstream: R$ 300-800  
+- Designers premium: R$ 600-1.500
+- Nichos acessíveis: R$ 400-1.200
+- Nichos intermediários: R$ 800-2.000
+- Nichos premium (Nishane, PDM, Initio): R$ 1.500-4.000
+- Ultra-premium (Creed, Roja): R$ 2.500-6.000
+
+EXEMPLOS CORRETOS:
+- Nishane Hacivat 100ml: R$ 1.800-2.200
+- PDM Layton 100ml: R$ 2.000-2.800
+- Bleu de Chanel 100ml: R$ 700-900
+- Lattafa Khamrah 100ml: R$ 200-350
 
 🎯 HONESTIDADE OBRIGATÓRIA (REGRA CRÍTICA):
 
@@ -516,6 +576,24 @@ REGRAS IMPORTANTES:
 - Priorize NICHOS ACESSÍVEIS (<5k reviews Fragantica)
 - Evite hypados mainstream (>20k reviews)
 - Considere o CLIMA (quente→frescos, frio→amadeirados)
+- Use PREÇOS REAIS do mercado brasileiro (100ml)
+
+💰 PRECIFICAÇÃO REALISTA (100ml - BRASIL 2025):
+Clones árabes (Lattafa, Armaf): R$ 150-400
+Designers mainstream (Versace, PR): R$ 300-800
+Designers premium (Dior, Chanel): R$ 600-1.500
+Nichos acessíveis (Lalique, Rochas): R$ 400-1.200
+Nichos intermediários (Bulgari, Acqua di Parma): R$ 800-2.000
+Nichos premium (Nishane, PDM, Initio): R$ 1.500-4.000
+Ultra-premium (Creed, Roja): R$ 2.500-6.000
+
+EXEMPLOS DE PREÇOS CORRETOS:
+- Nishane Hacivat: R$ 1.800-2.200
+- PDM Layton: R$ 2.000-2.800
+- Bleu de Chanel: R$ 700-900
+- Sauvage EDT: R$ 450-650
+- Lattafa Khamrah: R$ 200-350
+- Lalique Encre Noire: R$ 400-600
 
 IDADES E PERFIS:
 18-25: Frescos, energéticos, modernos
