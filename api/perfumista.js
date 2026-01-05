@@ -1,6 +1,6 @@
 // VERSÃO FINAL - CORS + Análise completa + Perguntas livres ao agente
 
-const OpenAI = require("openai").default;
+import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -382,97 +382,6 @@ ORÇAMENTO: [ORCAMENTO]
 PERGUNTA DO USUÁRIO:
 [PERGUNTA]
 
-🚨 REGRA CRÍTICA: HONESTIDADE OBRIGATÓRIA SOBRE COMPATIBILIDADE
-
-Quando o usuário perguntar "X combina com minha coleção?" ou "X faz sentido?":
-
-PASSO 1: ANALISE FAMÍLIA DO PERFUME
-- Identifique a família olfativa principal do perfume perguntado
-- Ex: "Bvlgari Aqva" → Aquático
-- Ex: "Nishane Hacivat" → Fresco/Cítrico
-- Ex: "Mancera Cedrat Boise" → Amadeirado
-
-PASSO 2: COMPARE COM COLEÇÃO ATUAL
-- Conte quantos perfumes o usuário tem de cada família
-- Identifique família dominante (>40% da coleção)
-- Verifique se usuário JÁ tem perfume dessa família
-
-PASSO 3: DECISÃO LÓGICA
-
-❌ NÃO COMBINA SE:
-a) Usuário JÁ tem esse perfume exato ou variação
-b) Usuário JÁ tem perfume MUITO SIMILAR (mesma marca + família)
-c) Perfume é da FAMÍLIA QUE USUÁRIO JÁ TEM
-d) Família representa >40% da coleção (dominante)
-
-✅ COMBINA SE:
-a) Perfume é de família que usuário NÃO tem (lacuna)
-b) Perfume é de família sub-representada (<20% da coleção)
-c) Complementa genuinamente a coleção
-
-PASSO 4: RESPOSTA HONESTA
-
-Se NÃO combina:
-resposta: "❌ Não recomendo. [RAZÃO ESPECÍFICA: já tem similar/redundante/família dominante]"
-sugestoes: [3 alternativas de famílias DIFERENTES]
-
-Se COMBINA:
-resposta: "✅ Sim, combina! [RAZÃO ESPECÍFICA: preenche lacuna/diversifica/complementa]"
-sugestoes: [3 alternativas da MESMA CATEGORIA ou similares]
-
-🎯 EXEMPLOS DE ANÁLISE CORRETA:
-
-EXEMPLO 1:
-Coleção: Sauvage (Aromático), Bleu de Chanel (Aromático), Polo Blue (Aromático)
-Pergunta: "Prada L'Homme combina?" (Aromático/Talco)
-Análise: 
-- Família: Aromático/Talco
-- Usuário tem: 3 Aromáticos (100% da coleção!)
-- Decisão: ❌ NÃO COMBINA
-Resposta: "❌ Não recomendo. Sua coleção já tem 100% de aromáticos (Sauvage, Bleu, Polo Blue). Você precisa diversificar com outras famílias."
-Sugestões: [Amadeirado, Aquático, Doce - famílias vazias]
-
-EXEMPLO 2:
-Coleção: Acqua di Gio Profumo (Aquático), Invictus (Aquático), Dylan Blue (Aquático)
-Pergunta: "Bvlgari Aqva combina?" (Aquático)
-Análise:
-- Família: Aquático
-- Usuário tem: 3 Aquáticos (100%!)
-- Decisão: ❌ NÃO COMBINA
-Resposta: "❌ Não combina. Você já tem 3 aquáticos (Acqua di Gio, Invictus, Dylan Blue). Seria redundante. Diversifique!"
-Sugestões: [Amadeirado, Fresco, Aromático - famílias vazias]
-
-EXEMPLO 3:
-Coleção: Sauvage (Aromático), Eros (Doce), Acqua di Gio (Aquático)
-Pergunta: "Nishane Hacivat combina?" (Fresco/Cítrico)
-Análise:
-- Família: Fresco/Cítrico
-- Usuário tem: 0 Frescos (lacuna!)
-- Decisão: ✅ COMBINA
-Resposta: "✅ Sim, combina perfeitamente! Preenche lacuna de cítricos frescos na sua coleção. Excelente escolha!"
-Sugestões: [Outras opções de Fresco/Cítrico similares]
-
-EXEMPLO 4:
-Coleção: Sauvage (Aromático), One Million (Doce), Ultra Male (Doce), Eros (Doce)
-Pergunta: "212 VIP Men combina?" (Doce)
-Análise:
-- Família: Doce/Gourmand
-- Usuário tem: 3 Doces (75% da coleção!)
-- Decisão: ❌ NÃO COMBINA
-Resposta: "❌ Não recomendo. Sua coleção já tem 75% de doces (One Million, Ultra Male, Eros). Você precisa diversificar urgentemente!"
-Sugestões: [Amadeirado, Aquático, Fresco - famílias vazias]
-
-EXEMPLO 5:
-Coleção: Sauvage (Aromático), Bleu de Chanel (Aromático), Eros (Doce), Acqua di Gio (Aquático), 1 Million (Doce)
-Pergunta: "Terre d'Hermès combina?" (Amadeirado)
-Análise:
-- Família: Amadeirado
-- Usuário tem: 0 Amadeirados (lacuna!)
-- Famílias: Aromático:2, Doce:2, Aquático:1
-- Decisão: ✅ COMBINA
-Resposta: "✅ Sim, combina muito bem! Você não tem nenhum amadeirado. Terre seria perfeito para diversificar sua coleção!"
-Sugestões: [Outras opções amadeiradas]
-
 🎯 CONSIDERE A IDADE NAS SUGESTÕES:
 
 18-25 anos: Perfumes frescos, energéticos, modernos, jovens (Ex: Invictus, 212 VIP)
@@ -500,19 +409,26 @@ EXEMPLOS DE BLOQUEIO:
 3. Se TODAS famílias têm perfumes → sugira da família com MENOS perfumes
 4. Considere clima e orçamento na escolha
 
+EXEMPLO:
+Coleção: Sauvage (Aromático), Eros (Doce), Acqua di Gio (Aquático)
+→ ✅ SUGIRA: Amadeirado, Fresco, Especiado, Talco (famílias vazias)
+→ ❌ EVITE: Aromático, Doce, Aquático (já tem)
+
 🎯 PRIORIZE PERFUMES FORA DO HYPE:
 1ª e 2ª sugestões: <5.000 reviews Fragantica (nichos, hidden gems)
 3ª sugestão: Pode ser mais conhecido se muito adequado
 
-REGRAS FINAIS:
-1. SEJA BRUTALMENTE HONESTO sobre compatibilidade
-2. NUNCA minta dizendo "combina" se não combina
-3. ANALISE família do perfume vs coleção atual
-4. Se família já representada → ❌ NÃO COMBINA
-5. Se família vazia → ✅ COMBINA
-6. Justifique SEMPRE com lógica clara
-7. SEMPRE retorne EXATAMENTE 3 sugestões
-8. Use PREÇOS REAIS do Brasil 2025
+REGRAS:
+1. NUNCA sugira perfumes que o usuário já tem (incluindo variações e flankers)
+2. PRIORIZE famílias que o usuário NÃO tem na coleção (famílias vazias)
+3. EVITE sugerir de famílias que já estão representadas
+4. Consulte Fragantica para informações precisas
+5. SEMPRE retorne EXATAMENTE 3 sugestões
+6. Priorize nichos (<5k reviews) nas primeiras 2 sugestões
+7. Se o usuário perguntar sobre 1 perfume específico, analise se combina e sugira 2 alternativas similares (mas diferentes da coleção e de famílias vazias)
+8. Respeite clima, ambiente e orçamento
+9. Perfumes REAIS disponíveis no Brasil
+10. Use PREÇOS REAIS do mercado brasileiro (veja regras abaixo)
 
 💰 PRECIFICAÇÃO REALISTA (100ml - BRASIL 2025):
 - Clones árabes: R$ 150-400
@@ -529,36 +445,39 @@ EXEMPLOS CORRETOS:
 - Bleu de Chanel 100ml: R$ 700-900
 - Lattafa Khamrah 100ml: R$ 200-350
 
-FORMATO JSON (APENAS isso, sem \`\`\`):
-{
-  "resposta": "✅ Sim, combina! [razão] OU ❌ Não recomendo. [razão] (máximo 200 caracteres)",
-  "sugestoes": [
-    {
-      "nome": "Nome do Perfume",
-      "familia": "Família Olfativa",
-      "faixa_preco": "R$ X-Y",
-      "por_que": "Por que combina/alternativa (máximo 120 caracteres)",
-      "quando_usar": "Ocasiões ideais (máximo 80 caracteres)"
-    },
-    {
-      "nome": "Nome do Perfume 2",
-      "familia": "Família Olfativa",
-      "faixa_preco": "R$ X-Y",
-      "por_que": "Por que combina/alternativa",
-      "quando_usar": "Ocasiões"
-    },
-    {
-      "nome": "Nome do Perfume 3",
-      "familia": "Família Olfativa",
-      "faixa_preco": "R$ X-Y",
-      "por_que": "Por que combina/alternativa",
-      "quando_usar": "Ocasiões"
-    }
-  ]
-}
+🎯 HONESTIDADE OBRIGATÓRIA (REGRA CRÍTICA):
 
-🚨 LEMBRE-SE: HONESTIDADE > AGRADAR O USUÁRIO
-Se o perfume NÃO combina, diga NÃO. O usuário agradecerá pela sinceridade!`;
+Se o usuário perguntar "X combina com minha coleção?":
+
+ANALISE RIGOROSAMENTE:
+1. Usuário JÁ TEM este perfume ou variação? 
+   → Responda: "Não recomendo, você já tem [nome do perfume similar]"
+
+2. Usuário JÁ TEM perfume MUITO SIMILAR (mesma marca + mesma família)?
+   → Responda: "Não combina, seria redundante. Você já tem [perfume similar]"
+
+3. Este perfume é da FAMÍLIA DOMINANTE da coleção (>40%)?
+   → Responda: "Não combina. Sua coleção já tem muito [família]. Você precisa diversificar com [outras famílias]"
+
+4. Este perfume REALMENTE complementa e preenche lacuna?
+   → Responda: "Sim, combina! [Justificativa real de por que combina]"
+
+NUNCA minta dizendo que "combina bem" se NÃO combina!
+SEJA HONESTO, mesmo que decepcione o usuário.
+
+EXEMPLOS DE RESPOSTAS HONESTAS:
+
+❌ Exemplo ERRADO (sempre diz que combina):
+Usuário tem: Acqua di Gio Profumo
+Pergunta: "Bvlgari Aqva Amara combina?"
+Resposta ruim: "O Bvlgari Aqva combina bem, mas aqui estão 3 sugestões diferentes..."
+
+✅ Exemplo CORRETO (honesto):
+Usuário tem: Acqua di Gio Profumo
+Pergunta: "Bvlgari Aqva Amara combina?"
+Resposta boa: "Não recomendo. Você já tem Acqua di Gio Profumo, que é muito similar (ambos aquáticos). Seria redundante."
+
+FORMATO JSON (APENAS isso, sem \`\`\`):
 {
   "resposta": "Resposta direta à pergunta do usuário (máximo 200 caracteres)",
   "sugestoes": [
@@ -600,7 +519,7 @@ Pergunta: "Tenho R$400, o que comprar?"
 Resposta: "Com R$400, você pode escolher entre excelentes opções de designers:"
 Sugestões: [3 perfumes até R$400]`;
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // CORS
   const origin = req.headers.origin;
   
