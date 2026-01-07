@@ -447,7 +447,28 @@ FORMATO JSON (APENAS isso, sem \`\`\`):
     {"nome": "Acqua di Gio Profumo", "familia": "Aquático", "faixa_preco": "R$ 450-600", "por_que": "Aquático fresco", "quando_usar": "Verão"}
   ],
   "contexto_aplicado": {"clima": "🌡️ Quente", "ambiente": "🏢 Fechado", "orcamento": "R$ 300-500"}
-}`;
+}
+
+🚨🚨🚨 INSTRUÇÕES CRÍTICAS DE FORMATO 🚨🚨🚨
+
+VOCÊ DEVE RETORNAR APENAS E SOMENTE JSON PURO!
+
+❌ NÃO RETORNE:
+- Texto antes do JSON (ex: "Aqui está a análise...")
+- Texto depois do JSON (ex: "Espero ter ajudado!")
+- Markdown com \`\`\`json
+- Explicações adicionais
+- Comentários
+- Quebras de linha extras
+
+✅ RETORNE APENAS:
+{
+  "analise_colecao": { ... },
+  "recomendacoes": [ ... ]
+}
+
+COMECE SUA RESPOSTA COM { e TERMINE COM }
+NADA MAIS!`;
 
 // SYSTEM_PROMPT para perguntas livres
 const SYSTEM_PROMPT_PERGUNTA = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira que responde perguntas sobre perfumes.
@@ -748,26 +769,44 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       
       const text = response.choices[0]?.message?.content || "";
       console.log("📨 Resposta OpenAI OK");
+      console.log("📄 Texto recebido (primeiros 200 chars):", text.substring(0, 200));
       
-      // Limpar markdown
+      // Limpeza AGRESSIVA de markdown e texto extra
       let cleanText = text.trim();
-      cleanText = cleanText.replace(/```json\n?/g, '');
-      cleanText = cleanText.replace(/```\n?/g, '');
       
+      // Remove blocos de código markdown
+      cleanText = cleanText.replace(/```json\s*/g, '');
+      cleanText = cleanText.replace(/```\s*/g, '');
+      
+      // Remove qualquer texto ANTES do primeiro {
       const firstBrace = cleanText.indexOf('{');
       if (firstBrace > 0) {
+        console.log("⚠️ Removendo texto antes do JSON:", cleanText.substring(0, firstBrace));
         cleanText = cleanText.substring(firstBrace);
       }
       
+      // Remove qualquer texto DEPOIS do último }
       const lastBrace = cleanText.lastIndexOf('}');
       if (lastBrace !== -1 && lastBrace < cleanText.length - 1) {
+        console.log("⚠️ Removendo texto depois do JSON:", cleanText.substring(lastBrace + 1));
         cleanText = cleanText.substring(0, lastBrace + 1);
       }
       
-      const data = JSON.parse(cleanText.trim());
-      console.log("✅ JSON parseado");
+      console.log("🧹 JSON limpo (primeiros 200 chars):", cleanText.substring(0, 200));
       
-      return res.status(200).json(data);
+      try {
+        const data = JSON.parse(cleanText.trim());
+        console.log("✅ JSON parseado com sucesso");
+        return res.status(200).json(data);
+      } catch (parseError) {
+        console.error("❌ Erro ao parsear JSON:", parseError.message);
+        console.error("📄 Conteúdo que falhou:", cleanText.substring(0, 500));
+        return res.status(500).json({ 
+          error: "Falha ao parsear resposta da API",
+          details: parseError.message,
+          preview: cleanText.substring(0, 200)
+        });
+      }
       
     } catch (err) {
       console.error("❌ Erro:", err);
