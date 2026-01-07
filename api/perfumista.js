@@ -737,13 +737,13 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       console.log("🤖 Chamando OpenAI");
       
       const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",  // ✅ Mudado de gpt-4o-mini para melhor precisão
         messages: [
           { role: "system", content: prompt },
           { role: "user", content: userMessage },
         ],
-        max_tokens: 1800,
-        temperature: 0.7,
+        max_tokens: 2000,  // Aumentado de 1800
+        temperature: 0.3,  // Reduzido de 0.7 (menos criatividade = mais precisão)
       });
       
       const text = response.choices[0]?.message?.content || "";
