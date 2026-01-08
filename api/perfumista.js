@@ -447,28 +447,7 @@ FORMATO JSON (APENAS isso, sem \`\`\`):
     {"nome": "Acqua di Gio Profumo", "familia": "Aquático", "faixa_preco": "R$ 450-600", "por_que": "Aquático fresco", "quando_usar": "Verão"}
   ],
   "contexto_aplicado": {"clima": "🌡️ Quente", "ambiente": "🏢 Fechado", "orcamento": "R$ 300-500"}
-}
-
-🚨🚨🚨 INSTRUÇÕES CRÍTICAS DE FORMATO 🚨🚨🚨
-
-VOCÊ DEVE RETORNAR APENAS E SOMENTE JSON PURO!
-
-❌ NÃO RETORNE:
-- Texto antes do JSON (ex: "Aqui está a análise...")
-- Texto depois do JSON (ex: "Espero ter ajudado!")
-- Markdown com \`\`\`json
-- Explicações adicionais
-- Comentários
-- Quebras de linha extras
-
-✅ RETORNE APENAS:
-{
-  "analise_colecao": { ... },
-  "recomendacoes": [ ... ]
-}
-
-COMECE SUA RESPOSTA COM { e TERMINE COM }
-NADA MAIS!`;
+}`;
 
 // SYSTEM_PROMPT para perguntas livres
 const SYSTEM_PROMPT_PERGUNTA = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira que responde perguntas sobre perfumes.
@@ -627,6 +606,49 @@ Pergunta: "Tenho R$400, o que comprar?"
 Resposta: "Com R$400, você pode escolher entre excelentes opções de designers:"
 Sugestões: [3 perfumes até R$400]`;
 
+// ===============================================
+// PROTEÇÃO ANTI-ABUSE
+// ===============================================
+
+// Cache em memória (reseta quando função hiberna)
+const requestCache = new Map();
+const WINDOW_MS = 60 * 1000; // 1 minuto
+const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests por minuto
+
+// VIPs sem limite
+const VIP_EMAILS = ['vguerise@gmail.com'];
+
+function checkRateLimit(identifier) {
+    // VIP passa direto
+    if (VIP_EMAILS.includes(identifier?.toLowerCase())) {
+        return { allowed: true, remaining: 999, vip: true };
+    }
+    
+    const now = Date.now();
+    const key = identifier || 'anonymous';
+    
+    let userRequests = requestCache.get(key) || [];
+    userRequests = userRequests.filter(timestamp => now - timestamp < WINDOW_MS);
+    
+    if (userRequests.length >= MAX_REQUESTS_PER_WINDOW) {
+        return { 
+            allowed: false, 
+            remaining: 0,
+            resetIn: Math.ceil((userRequests[0] + WINDOW_MS - now) / 1000)
+        };
+    }
+    
+    userRequests.push(now);
+    requestCache.set(key, userRequests);
+    
+    return { 
+        allowed: true, 
+        remaining: MAX_REQUESTS_PER_WINDOW - userRequests.length
+    };
+}
+
+// ===============================================
+
 export default async function handler(req, res) {
   // CORS
   const origin = req.headers.origin;
@@ -651,6 +673,29 @@ export default async function handler(req, res) {
   
   if (req.method === "POST") {
     try {
+      // 🛡️ PROTEÇÃO ANTI-ABUSE
+      const email = req.body.email || req.body.colecao?.[0] || 'anonymous';
+      const rateLimitCheck = checkRateLimit(email);
+      
+      // Headers de rate limit
+      res.setHeader('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW);
+      res.setHeader('X-RateLimit-Remaining', rateLimitCheck.remaining);
+      
+      if (!rateLimitCheck.allowed) {
+        console.log(`⚠️ Rate limit excedido: ${email}`);
+        return res.status(429).json({
+          error: 'Muitas requisições',
+          message: `Aguarde ${rateLimitCheck.resetIn} segundos antes de tentar novamente`,
+          resetIn: rateLimitCheck.resetIn
+        });
+      }
+      
+      if (rateLimitCheck.vip) {
+        console.log(`👑 VIP: ${email}`);
+      } else {
+        console.log(`✅ Rate limit OK: ${rateLimitCheck.remaining} restantes`);
+      }
+      
       const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, clima, ambiente, idade, orcamento } = req.body;
       
       let prompt = "";
@@ -769,44 +814,26 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       
       const text = response.choices[0]?.message?.content || "";
       console.log("📨 Resposta OpenAI OK");
-      console.log("📄 Texto recebido (primeiros 200 chars):", text.substring(0, 200));
       
-      // Limpeza AGRESSIVA de markdown e texto extra
+      // Limpar markdown
       let cleanText = text.trim();
+      cleanText = cleanText.replace(/```json\n?/g, '');
+      cleanText = cleanText.replace(/```\n?/g, '');
       
-      // Remove blocos de código markdown
-      cleanText = cleanText.replace(/```json\s*/g, '');
-      cleanText = cleanText.replace(/```\s*/g, '');
-      
-      // Remove qualquer texto ANTES do primeiro {
       const firstBrace = cleanText.indexOf('{');
       if (firstBrace > 0) {
-        console.log("⚠️ Removendo texto antes do JSON:", cleanText.substring(0, firstBrace));
         cleanText = cleanText.substring(firstBrace);
       }
       
-      // Remove qualquer texto DEPOIS do último }
       const lastBrace = cleanText.lastIndexOf('}');
       if (lastBrace !== -1 && lastBrace < cleanText.length - 1) {
-        console.log("⚠️ Removendo texto depois do JSON:", cleanText.substring(lastBrace + 1));
         cleanText = cleanText.substring(0, lastBrace + 1);
       }
       
-      console.log("🧹 JSON limpo (primeiros 200 chars):", cleanText.substring(0, 200));
+      const data = JSON.parse(cleanText.trim());
+      console.log("✅ JSON parseado");
       
-      try {
-        const data = JSON.parse(cleanText.trim());
-        console.log("✅ JSON parseado com sucesso");
-        return res.status(200).json(data);
-      } catch (parseError) {
-        console.error("❌ Erro ao parsear JSON:", parseError.message);
-        console.error("📄 Conteúdo que falhou:", cleanText.substring(0, 500));
-        return res.status(500).json({ 
-          error: "Falha ao parsear resposta da API",
-          details: parseError.message,
-          preview: cleanText.substring(0, 200)
-        });
-      }
+      return res.status(200).json(data);
       
     } catch (err) {
       console.error("❌ Erro:", err);
