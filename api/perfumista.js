@@ -194,9 +194,9 @@ FAMÍLIAS OLFATIVAS (use exatamente estes nomes):
 3. Doce/Gourmand
 4. Amadeirado
 5. Especiado/Oriental
-6. Aquático
+6. Aquático/Mineral
 7. Talco/Fougère
-8. Floral
+8. Floral/Floral Branco
 9. Frutado
 
 🔍 GUIA DEFINITIVO DE CLASSIFICAÇÃO POR FAMÍLIA (com exemplos reais):
@@ -206,7 +206,7 @@ IMPORTANTE: Use o Fragantica como referência PRINCIPAL, mas aqui está um guia 
 1. 🍋 FRESCO/CÍTRICO:
 Características: Limão, bergamota, laranja, toranja, leve, energético, refrescante
 ✅ EXEMPLOS CORRETOS: Acqua di Gio, Versace Man Eau Fraiche, Dolce & Gabbana Light Blue, Dior Homme Cologne, Versace Pour Homme
-❌ NÃO CONFUNDIR COM: Aquático (tem notas marinhas), Aromático (tem lavanda/ervas)
+❌ NÃO CONFUNDIR COM: Aquático/Mineral (tem notas marinhas/minerais), Aromático (tem lavanda/ervas)
 
 2. 🌳 AROMÁTICO/VERDE:
 Características: Lavanda, sálvia, alecrim, ervas, fougère clássico, barbeiro
@@ -228,20 +228,27 @@ Características: Canela, cardamomo, pimenta, âmbar, resinas, quente, exótico
 ✅ EXEMPLOS CORRETOS: Dior Fahrenheit, Yves Saint Laurent La Nuit de L'Homme, Prada Luna Rossa Black, Givenchy Gentleman EDP, Lattafa Khamrah
 ❌ NÃO CONFUNDIR COM: Amadeirado puro (sem especiarias marcantes)
 
-6. 💧 AQUÁTICO:
-Características: Notas marinhas, ozônico, água, praia, fresco aquático
-✅ EXEMPLOS CORRETOS: Nautica Voyage, Davidoff Cool Water, Bvlgari Aqva, Givenchy Gentlemen Only Casual Chic
-❌ NÃO CONFUNDIR COM: Fresco/Cítrico (aquático TEM nota marinha específica)
+6. 💧 AQUÁTICO/MINERAL:
+Características AQUÁTICO: Notas marinhas, ozônico, água, praia, fresco aquático, sal marinho
+Características MINERAL: Pedra molhada, concreto, ozônio mineral, giz, ardósia, metálico limpo
+✅ EXEMPLOS AQUÁTICO: Nautica Voyage, Davidoff Cool Water, Bvlgari Aqva, Givenchy Gentlemen Only Casual Chic
+✅ EXEMPLOS MINERAL: Comme des Garçons Floriental, Lalique Encre Noire Sport, Montblanc Legend Spirit, Hermès Terre d'Hermès Eau Très Fraîche
+❌ NÃO CONFUNDIR COM: Fresco/Cítrico (aquático TEM nota marinha/mineral específica)
+🔑 REGRA CHAVE: Se tem NOTAS MARINHAS ou MINERAIS (pedra, ozônio, metálico) = Aquático/Mineral
 
 7. 🧼 TALCO/FOUGÈRE:
-Características: Talco, sabonete, barbear, fougère talcado, limpo, clássico
-✅ EXEMPLOS CORRETOS: Paco Rabanne Pour Homme, Azzaro Pour Homme, Drakkar Noir, Guy Laroche Drakkar
-❌ NÃO CONFUNDIR COM: Aromático (fougère aromático vs talcado)
+Características: Talco, sabonete, barbear, fougère talcado, limpo, clássico, ÍRIS TALCADA
+✅ EXEMPLOS CORRETOS: Paco Rabanne Pour Homme, Azzaro Pour Homme, Drakkar Noir, Guy Laroche Drakkar, Prada L'Homme (íris talcada), Dior Homme (íris)
+❌ NÃO CONFUNDIR COM: Aromático (fougère aromático vs talcado), Floral puro (se tem íris + talco = Talco/Fougère)
+🔑 REGRA CHAVE: Se tem ÍRIS como nota principal + sensação talcada/sabonete = TALCO/FOUGÈRE (não Floral!)
 
-8. 🌸 FLORAL:
-Características: Rosa, jasmim, violeta, íris, flores brancas, delicado
-✅ EXEMPLOS CORRETOS: Dior Homme (íris), Prada L'Homme (neroli/íris), Valentino Uomo (íris)
-❌ NÃO é comum em masculinos, geralmente combinado com amadeirado
+8. 🌸 FLORAL/FLORAL BRANCO:
+Características FLORAL: Rosa, gerânio, violeta, delicado (NÃO íris talcada!)
+Características FLORAL BRANCO: Jasmim, muguet (lírio do vale), lírio, tuberosa, flores brancas cremosas
+✅ EXEMPLOS FLORAL: Valentino Uomo Intense (íris + couro), perfumes unissex florais
+✅ EXEMPLOS FLORAL BRANCO: Creed Silver Mountain Water (chá branco), Tom Ford Neroli Portofino (neroli), perfumes com jasmim dominante
+❌ NÃO é comum em masculinos puros. Se tem ÍRIS + TALCO = vai para Talco/Fougère!
+🔑 REGRA CHAVE: Se tem FLORES BRANCAS (jasmim, muguet, lírio) como nota DOMINANTE = Floral/Floral Branco
 
 9. 🍇 FRUTADO:
 Características: Maçã, abacaxi, frutas vermelhas, pêra, frutado doce
@@ -255,13 +262,39 @@ Bleu de Chanel: Cítrico na abertura, mas cedro + sândalo dominam = AMADEIRADO
 Versace Eros: Menta + baunilha forte = DOCE/GOURMAND (doce domina)
 Acqua di Gio: Cítrico + aquático, mas cítrico domina = FRESCO/CÍTRICO
 Paco Rabanne 1 Million: Canela + caramelo/baunilha = DOCE/GOURMAND (não especiado, pois doce domina)
+Prada L'Homme: Íris + neroli + âmbar = TALCO/FOUGÈRE (íris talcada domina, NÃO é Floral!)
+Dior Homme: Íris + cacau = TALCO/FOUGÈRE (íris talcada, NÃO é Floral mesmo tendo flor!)
+Valentino Uomo: Íris + couro = TALCO/FOUGÈRE (íris talcada, NÃO é Floral!)
+Lalique Encre Noire Sport: Vetiver + ozônio mineral = AQUÁTICO/MINERAL (mineral domina)
+Montblanc Legend Spirit: Aquático + notas minerais = AQUÁTICO/MINERAL
+Tom Ford Neroli Portofino: Neroli (flor branca) dominante = FLORAL/FLORAL BRANCO
 
 REGRA DE OURO: 
 - Se tem BAUNILHA FORTE = Doce/Gourmand
 - Se tem LAVANDA + AMBROXAN = Aromático/Verde  
 - Se tem CEDRO/SÂNDALO dominante = Amadeirado
-- Se tem NOTAS MARINHAS = Aquático
+- Se tem NOTAS MARINHAS ou MINERAIS (pedra, ozônio, metálico) = Aquático/Mineral
 - Se tem ESPECIARIAS sem doce = Especiado/Oriental
+- Se tem ÍRIS + TALCO/SABONETE = Talco/Fougère (NÃO Floral!)
+- Se tem FLORES BRANCAS dominantes (jasmim, muguet, lírio) = Floral/Floral Branco
+
+⚠️ ATENÇÃO ESPECIAL - ÍRIS:
+A íris pode ser TALCADA (Prada L'Homme, Dior Homme) ou FLORAL (raro em masculinos).
+- Íris + sensação de sabonete/talco/limpo = TALCO/FOUGÈRE ✅
+- Íris + floral puro sem talco = Floral (raríssimo em masculinos)
+
+⚠️ ATENÇÃO ESPECIAL - MINERAL:
+Notas minerais são DIFERENTES de aquático puro (marinho).
+- Aquático marinho: Sal, brisa, oceano (Davidoff Cool Water)
+- Mineral: Pedra molhada, concreto, ozônio, giz, metálico (Lalique Encre Noire Sport)
+- Se tem AMBOS ou mineral dominante = Aquático/Mineral ✅
+
+⚠️ ATENÇÃO ESPECIAL - FLORAL BRANCO:
+Flores brancas são específicas, não qualquer flor.
+- Flores brancas: Jasmim, muguet (lírio do vale), lírio, tuberosa, neroli
+- Outras flores: Rosa, gerânio, violeta, íris (essas NÃO são floral branco)
+- Se jasmim/muguet/lírio DOMINAM = Floral/Floral Branco ✅
+- Se íris domina = vai para Talco/Fougère (não floral!)
 
 🔍 PROCESSO DE CLASSIFICAÇÃO OBRIGATÓRIO:
 
