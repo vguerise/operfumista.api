@@ -199,6 +199,78 @@ FAMÍLIAS OLFATIVAS (use exatamente estes nomes):
 8. Floral
 9. Frutado
 
+🔍 GUIA DEFINITIVO DE CLASSIFICAÇÃO POR FAMÍLIA (com exemplos reais):
+
+IMPORTANTE: Use o Fragantica como referência PRINCIPAL, mas aqui está um guia com perfumes icônicos para calibrar sua classificação:
+
+1. 🍋 FRESCO/CÍTRICO:
+Características: Limão, bergamota, laranja, toranja, leve, energético, refrescante
+✅ EXEMPLOS CORRETOS: Acqua di Gio, Versace Man Eau Fraiche, Dolce & Gabbana Light Blue, Dior Homme Cologne, Versace Pour Homme
+❌ NÃO CONFUNDIR COM: Aquático (tem notas marinhas), Aromático (tem lavanda/ervas)
+
+2. 🌳 AROMÁTICO/VERDE:
+Características: Lavanda, sálvia, alecrim, ervas, fougère clássico, barbeiro
+✅ EXEMPLOS CORRETOS: Dior Sauvage EDT, Paco Rabanne Invictus, Prada L'Homme, YSL Y EDP, Versace Dylan Blue
+❌ NÃO CONFUNDIR COM: Talco/Fougère (mais talcado), Fresco (mais cítrico puro)
+
+3. 🍯 DOCE/GOURMAND:
+Características: Baunilha, caramelo, chocolate, mel, comestível, doce marcante
+✅ EXEMPLOS CORRETOS: Paco Rabanne 1 Million, Versace Eros, JPG Ultra Male, Azzaro Wanted, Armani Code
+❌ NÃO CONFUNDIR COM: Especiado (tem especiarias mas não doce de baunilha)
+
+4. 🪵 AMADEIRADO:
+Características: Cedro, sândalo, vetiver, madeiras secas, terroso, masculino clássico
+✅ EXEMPLOS CORRETOS: Bleu de Chanel, Dior Homme Intense, Terre d'Hermès, Lalique Encre Noire, Tom Ford Oud Wood
+❌ NÃO CONFUNDIR COM: Aromático (madeira + lavanda = aromático), Especiado (madeira + especiarias = especiado)
+
+5. 🌶️ ESPECIADO/ORIENTAL:
+Características: Canela, cardamomo, pimenta, âmbar, resinas, quente, exótico
+✅ EXEMPLOS CORRETOS: Dior Fahrenheit, Yves Saint Laurent La Nuit de L'Homme, Prada Luna Rossa Black, Givenchy Gentleman EDP, Lattafa Khamrah
+❌ NÃO CONFUNDIR COM: Amadeirado puro (sem especiarias marcantes)
+
+6. 💧 AQUÁTICO:
+Características: Notas marinhas, ozônico, água, praia, fresco aquático
+✅ EXEMPLOS CORRETOS: Nautica Voyage, Davidoff Cool Water, Bvlgari Aqva, Givenchy Gentlemen Only Casual Chic
+❌ NÃO CONFUNDIR COM: Fresco/Cítrico (aquático TEM nota marinha específica)
+
+7. 🧼 TALCO/FOUGÈRE:
+Características: Talco, sabonete, barbear, fougère talcado, limpo, clássico
+✅ EXEMPLOS CORRETOS: Paco Rabanne Pour Homme, Azzaro Pour Homme, Drakkar Noir, Guy Laroche Drakkar
+❌ NÃO CONFUNDIR COM: Aromático (fougère aromático vs talcado)
+
+8. 🌸 FLORAL:
+Características: Rosa, jasmim, violeta, íris, flores brancas, delicado
+✅ EXEMPLOS CORRETOS: Dior Homme (íris), Prada L'Homme (neroli/íris), Valentino Uomo (íris)
+❌ NÃO é comum em masculinos, geralmente combinado com amadeirado
+
+9. 🍇 FRUTADO:
+Características: Maçã, abacaxi, frutas vermelhas, pêra, frutado doce
+✅ EXEMPLOS CORRETOS: Creed Aventus (abacaxi), Armaf Club de Nuit Intense (abacaxi), CH Men Privé (maçã)
+❌ NÃO CONFUNDIR COM: Fresco/Cítrico (cítricos são uma subcategoria diferente)
+
+⚠️ CASOS DIFÍCEIS - COMO CLASSIFICAR:
+
+Dior Sauvage EDT: Embora tenha bergamota (cítrico), a lavanda + Ambroxan dominam = AROMÁTICO/VERDE
+Bleu de Chanel: Cítrico na abertura, mas cedro + sândalo dominam = AMADEIRADO
+Versace Eros: Menta + baunilha forte = DOCE/GOURMAND (doce domina)
+Acqua di Gio: Cítrico + aquático, mas cítrico domina = FRESCO/CÍTRICO
+Paco Rabanne 1 Million: Canela + caramelo/baunilha = DOCE/GOURMAND (não especiado, pois doce domina)
+
+REGRA DE OURO: 
+- Se tem BAUNILHA FORTE = Doce/Gourmand
+- Se tem LAVANDA + AMBROXAN = Aromático/Verde  
+- Se tem CEDRO/SÂNDALO dominante = Amadeirado
+- Se tem NOTAS MARINHAS = Aquático
+- Se tem ESPECIARIAS sem doce = Especiado/Oriental
+
+🔍 PROCESSO DE CLASSIFICAÇÃO OBRIGATÓRIO:
+
+1. Identifique as 3 notas mais fortes do perfume
+2. Qual nota DOMINA a fragrância? (abertura não é tudo!)
+3. Consulte mentalmente o Fragantica para esse perfume
+4. Use a família que aparece PRIMEIRO no Fragantica
+5. Em caso de dúvida entre 2 famílias, escolha a que domina a secagem (drydown)
+
 🎯 REGRA: PRIORIZE PERFUMES FORA DO HYPE (NÃO BLOQUEIE, PRIORIZE)
 
 OBJETIVO: Primeiras 2 sugestões devem ser menos conhecidas. Terceira pode ser mainstream se necessário.
@@ -606,49 +678,6 @@ Pergunta: "Tenho R$400, o que comprar?"
 Resposta: "Com R$400, você pode escolher entre excelentes opções de designers:"
 Sugestões: [3 perfumes até R$400]`;
 
-// ===============================================
-// PROTEÇÃO ANTI-ABUSE
-// ===============================================
-
-// Cache em memória (reseta quando função hiberna)
-const requestCache = new Map();
-const WINDOW_MS = 60 * 1000; // 1 minuto
-const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests por minuto
-
-// VIPs sem limite
-const VIP_EMAILS = ['vguerise@gmail.com'];
-
-function checkRateLimit(identifier) {
-    // VIP passa direto
-    if (VIP_EMAILS.includes(identifier?.toLowerCase())) {
-        return { allowed: true, remaining: 999, vip: true };
-    }
-    
-    const now = Date.now();
-    const key = identifier || 'anonymous';
-    
-    let userRequests = requestCache.get(key) || [];
-    userRequests = userRequests.filter(timestamp => now - timestamp < WINDOW_MS);
-    
-    if (userRequests.length >= MAX_REQUESTS_PER_WINDOW) {
-        return { 
-            allowed: false, 
-            remaining: 0,
-            resetIn: Math.ceil((userRequests[0] + WINDOW_MS - now) / 1000)
-        };
-    }
-    
-    userRequests.push(now);
-    requestCache.set(key, userRequests);
-    
-    return { 
-        allowed: true, 
-        remaining: MAX_REQUESTS_PER_WINDOW - userRequests.length
-    };
-}
-
-// ===============================================
-
 export default async function handler(req, res) {
   // CORS
   const origin = req.headers.origin;
@@ -673,29 +702,6 @@ export default async function handler(req, res) {
   
   if (req.method === "POST") {
     try {
-      // 🛡️ PROTEÇÃO ANTI-ABUSE
-      const email = req.body.email || req.body.colecao?.[0] || 'anonymous';
-      const rateLimitCheck = checkRateLimit(email);
-      
-      // Headers de rate limit
-      res.setHeader('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW);
-      res.setHeader('X-RateLimit-Remaining', rateLimitCheck.remaining);
-      
-      if (!rateLimitCheck.allowed) {
-        console.log(`⚠️ Rate limit excedido: ${email}`);
-        return res.status(429).json({
-          error: 'Muitas requisições',
-          message: `Aguarde ${rateLimitCheck.resetIn} segundos antes de tentar novamente`,
-          resetIn: rateLimitCheck.resetIn
-        });
-      }
-      
-      if (rateLimitCheck.vip) {
-        console.log(`👑 VIP: ${email}`);
-      } else {
-        console.log(`✅ Rate limit OK: ${rateLimitCheck.remaining} restantes`);
-      }
-      
       const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, clima, ambiente, idade, orcamento } = req.body;
       
       let prompt = "";
