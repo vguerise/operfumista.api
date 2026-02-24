@@ -61,12 +61,12 @@ export default async function handler(req, res) {
                 process.env.SUPABASE_SERVICE_ROLE_KEY
             );
             
-            // BUSCA SEM FILTRAR product_id (aceita qualquer produto)
+            // BUSCA NA TABELA CORRETA
             const { data, error } = await supabase
-                .from('entitlements')
+                .from('usuarios_curso')
                 .select('*')
                 .eq('email', email.toLowerCase())
-                .eq('status', 'active')
+                .eq('status', 'ativo')
                 .order('created_at', { ascending: false })
                 .limit(1);
             
