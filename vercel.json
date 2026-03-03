@@ -35,5 +35,13 @@
         }
       ]
     }
+  ]{
+  "crons": [
+    {
+      "path": "/api/push-send-missao",
+      "schedule": "0 12 * * 1"
+    }
   ]
+}
+
 }
