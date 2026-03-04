@@ -1,10 +1,44 @@
 // VERSÃO FINAL - CORS + Análise completa + Perguntas livres ao agente
 
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const DB = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+// Busca perfumes em quarentena (apareceram 2x+ nas últimas 10 análises)
+async function buscarQuarentena() {
+  try {
+    const { data } = await DB
+      .from("sugestoes_log")
+      .select("perfume_nome")
+      .order("created_at", { ascending: false })
+      .limit(30); // últimas 30 sugestões = ~10 análises (3 sugestões por análise)
+    if (!data || !data.length) return [];
+    const contagem = {};
+    data.forEach(({ perfume_nome }) => {
+      contagem[perfume_nome] = (contagem[perfume_nome] || 0) + 1;
+    });
+    // Quarentena: apareceu 2 ou mais vezes
+    return Object.entries(contagem)
+      .filter(([_, n]) => n >= 2)
+      .map(([nome]) => nome);
+  } catch (_) { return []; }
+}
+
+// Registra as sugestões feitas para controle de rotatividade
+async function registrarSugestoes(nomes) {
+  try {
+    const rows = nomes.map(perfume_nome => ({ perfume_nome }));
+    await DB.from("sugestoes_log").insert(rows);
+  } catch (_) {}
+}
 
 // SYSTEM_PROMPT para análise completa da coleção
 const SYSTEM_PROMPT_ANALISE = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
@@ -153,6 +187,23 @@ Pergunta 2: "Qual família tem MENOS perfumes?"
 Pergunta 3: "Esta família é adequada ao clima do usuário?"
 → Se SIM: Confirme sugestão
 → Se NÃO: Escolha outra família vazia/menor
+
+📅 REGRA: APENAS PERFUMES LANÇADOS A PARTIR DE 2000
+- NUNCA sugira perfumes lançados antes do ano 2000
+- Se um perfume clássico for relevante, sugira uma versão relançada/reformulada pós-2000
+- Perfumes de 2000 em diante têm maior disponibilidade no Brasil
+
+🔄 REGRA: NÃO REPITA SUGESTÕES EM QUARENTENA
+- Os seguintes perfumes foram muito sugeridos recentemente para outros usuários e estão em QUARENTENA:
+[QUARENTENA]
+- Se a lista não estiver vazia, NÃO sugira nenhum desses perfumes
+- Objetivo: maximizar diversidade de descobertas entre usuários
+
+⛔ REGRA: APENAS PERFUMES ATIVOS NO MERCADO
+- NUNCA sugira perfumes descontinuados, a menos que o usuário peça explicitamente
+- Antes de sugerir, confirme mentalmente: "Este perfume ainda está sendo produzido e vendido?"
+- Se houver dúvida sobre descontinuação → escolha outro perfume
+- Flankers e edições limitadas esgotadas = descontinuados para este fim
 
 🚫 REGRA ANTI-DUPLICATA OBRIGATÓRIA: NUNCA SUGERIR PERFUMES QUE O USUÁRIO JÁ TEM
 
@@ -584,6 +635,15 @@ PERGUNTA DO USUÁRIO:
 
 IMPORTANTE: A idade influencia fortemente qual perfume é adequado. Um perfume "jovem" pode parecer imaturo em alguém de 50+, e um perfume "sênior" pode parecer "velho demais" para alguém de 20 anos.
 
+📅 REGRA: APENAS PERFUMES LANÇADOS A PARTIR DE 2000
+- NUNCA sugira perfumes lançados antes do ano 2000
+
+⛔ REGRA: APENAS PERFUMES ATIVOS NO MERCADO
+- NUNCA sugira perfumes descontinuados, a menos que o usuário peça explicitamente
+
+🔄 PERFUMES EM QUARENTENA (muito sugeridos recentemente — NÃO use):
+[QUARENTENA]
+
 🚫 REGRA ANTI-DUPLICATA OBRIGATÓRIA:
 NUNCA sugerir perfumes que o usuário JÁ TEM na coleção, incluindo:
 - Variações (EDT, EDP, Parfum, Intense)
@@ -735,7 +795,28 @@ export default async function handler(req, res) {
   
   if (req.method === "POST") {
     try {
-      const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, clima, ambiente, idade, orcamento } = req.body;
+      const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, clima, ambiente, idade, orcamento, _proxy, system, messages, max_tokens } = req.body;
+
+      // Formato genérico para Chat, Missão e Desejos do Perfumap
+      if (_proxy) {
+        const msgs = [];
+        if (system) msgs.push({ role: "system", content: system });
+        if (messages?.length) msgs.push(...messages);
+        const completion = await client.chat.completions.create({
+          model: "gpt-4o-mini",
+          max_tokens: max_tokens || 1000,
+          messages: msgs,
+          temperature: 0.7,
+        });
+        const text = completion.choices?.[0]?.message?.content || "";
+        return res.status(200).json({ text, content: [{ type: "text", text }] });
+      }
+
+      // Busca quarentena global (perfumes sugeridos 2x+ nas últimas 10 análises)
+      const quarentena = await buscarQuarentena();
+      const quarentenaTexto = quarentena.length > 0
+        ? quarentena.join(", ")
+        : "Nenhum perfume em quarentena no momento.";
       
       let prompt = "";
       let userMessage = "";
@@ -812,7 +893,7 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       } else if (diagnostico) {
         // ANÁLISE COMPLETA DA COLEÇÃO
         console.log("✅ POST - Análise completa");
-        prompt = SYSTEM_PROMPT_ANALISE;
+        prompt = SYSTEM_PROMPT_ANALISE.replace("[QUARENTENA]", quarentenaTexto);
         userMessage = diagnostico;
         
       } else if (pergunta) {
@@ -830,7 +911,8 @@ RETORNE JSON (apenas isso, sem \`\`\`):
           .replace("[AMBIENTE]", ambiente || "Ambos")
           .replace("[IDADE]", idade || "25-35")
           .replace("[ORCAMENTO]", orcamento || "R$ 300-500")
-          .replace("[PERGUNTA]", pergunta);
+          .replace("[PERGUNTA]", pergunta)
+          .replace("[QUARENTENA]", quarentenaTexto);
         
         userMessage = pergunta;
         
@@ -871,7 +953,19 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       
       const data = JSON.parse(cleanText.trim());
       console.log("✅ JSON parseado");
-      
+
+      // Registra sugestões para controle de rotatividade global
+      try {
+        const nomesParaLogar = [];
+        if (data.recomendacoes?.length) {
+          data.recomendacoes.forEach(r => { if (r.nome) nomesParaLogar.push(r.nome); });
+        }
+        if (data.sugestoes?.length) {
+          data.sugestoes.forEach(s => { if (s.nome) nomesParaLogar.push(s.nome); });
+        }
+        if (nomesParaLogar.length) await registrarSugestoes(nomesParaLogar);
+      } catch (_) {}
+
       return res.status(200).json(data);
       
     } catch (err) {
