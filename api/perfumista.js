@@ -931,6 +931,7 @@ RETORNE JSON (apenas isso, sem \`\`\`):
         ],
         max_tokens: 2000,  // Aumentado de 1800
         temperature: 0.3,  // Reduzido de 0.7 (menos criatividade = mais precisão)
+        response_format: { type: "json_object" }, // ✅ Força retorno JSON puro, sem texto corrido
       });
       
       const text = response.choices[0]?.message?.content || "";
@@ -950,8 +951,17 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       if (lastBrace !== -1 && lastBrace < cleanText.length - 1) {
         cleanText = cleanText.substring(0, lastBrace + 1);
       }
-      
-      const data = JSON.parse(cleanText.trim());
+
+      // Parse com log detalhado em caso de falha
+      let data;
+      try {
+        data = JSON.parse(cleanText.trim());
+      } catch (parseErr) {
+        console.error("❌ JSON.parse falhou. Trecho recebido:", cleanText.substring(0, 300));
+        return res.status(500).json({
+          error: "O Perfumista não conseguiu gerar a resposta neste momento. Tente novamente em alguns segundos."
+        });
+      }
       console.log("✅ JSON parseado");
 
       // Registra sugestões para controle de rotatividade global
@@ -969,8 +979,8 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       return res.status(200).json(data);
       
     } catch (err) {
-      console.error("❌ Erro:", err);
-      return res.status(500).json({ error: err.message });
+      console.error("❌ Erro geral:", err.message);
+      return res.status(500).json({ error: "Erro interno. Tente novamente em alguns segundos." });
     }
   }
   
