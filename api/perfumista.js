@@ -948,7 +948,7 @@ RETORNE JSON (apenas isso, sem \`\`\`):
       console.log("🤖 Chamando OpenAI");
       
       const response = await client.chat.completions.create({
-        model: "gpt-4o",  // ✅ Mudado de gpt-4o-mini para melhor precisão
+model: "gpt-4o-mini",
         messages: [
           { role: "system", content: prompt },
           { role: "user", content: userMessage },
