@@ -606,25 +606,28 @@ Orçamento: <R$300=Natura/Boticário | R$300-500=Versace/Boss | R$500-1000=Dior/
 ETAPA 10: SUGERIR 3 RECOMENDAÇÕES
 NUNCA da dominante | PRIORIZAR que faltam | Cada uma de família diferente
 
+⚠️ ATENÇÃO CRÍTICA SOBRE O EXEMPLO ABAIXO:
+O JSON a seguir mostra APENAS A ESTRUTURA dos campos. Os valores numéricos, nomes de perfumes e famílias são HIPOTÉTICOS e NÃO devem influenciar sua análise real. Você DEVE classificar cada perfume da coleção do usuário individualmente, do zero, com base nas notas reais de cada um. IGNORE completamente os valores do exemplo — use-o apenas como referência de formato e chaves.
+
 FORMATO JSON (APENAS isso, sem \`\`\`):
 {
   "analise_colecao": {
     "total_perfumes": 3,
-    "familias_representadas": 2,
+    "familias_representadas": 3,
     "perfumes_por_familia": {
-      "Amadeirado": 0, "Aromático/Verde": 0, "Aquático": 0,
-      "Doce/Gourmand": 3, "Especiado/Oriental": 0, "Floral": 0,
+      "Amadeirado": 1, "Aromático/Verde": 1, "Aquático": 1,
+      "Doce/Gourmand": 0, "Especiado/Oriental": 0, "Floral": 0,
       "Fresco/Cítrico": 0, "Frutado": 0, "Talco/Fougère": 0
     },
-    "familia_dominante": {"nome": "🍯 Doce/Gourmand", "quantidade": 3, "porcentagem": 100},
-    "top3_faltando": ["🍋 Fresco/Cítrico", "🌳 Aromático/Verde", "🪵 Amadeirado"],
+    "familia_dominante": {"nome": "🪵 Amadeirado", "quantidade": 1, "porcentagem": 33},
+    "top3_faltando": ["🍯 Doce/Gourmand", "🌶️ Especiado/Oriental", "💧 Aquático/Mineral"],
     "nivel": {"emoji": "🎯", "titulo": "INICIANTE", "descricao": "Foque nas 5 funções básicas"},
-    "equilibrio": {"status": "desbalanceada", "emoji": "🚨", "mensagem": "100% Doce - diversifique urgentemente"}
+    "equilibrio": {"status": "equilibrada", "emoji": "✅", "mensagem": "Coleção equilibrada, continue diversificando"}
   },
   "recomendacoes": [
-    {"nome": "Dior Sauvage EDT", "familia": "Aromático/Verde", "faixa_preco": "R$ 400-550", "por_que": "Adiciona aromático ausente", "quando_usar": "Dia, trabalho"},
-    {"nome": "Bleu de Chanel", "familia": "Amadeirado", "faixa_preco": "R$ 500-700", "por_que": "Amadeirado sofisticado", "quando_usar": "Noite, eventos"},
-    {"nome": "Acqua di Gio Profumo", "familia": "Aquático", "faixa_preco": "R$ 450-600", "por_que": "Aquático fresco", "quando_usar": "Verão"}
+    {"nome": "Lattafa Khamrah", "familia": "Especiado/Oriental", "faixa_preco": "R$ 200-350", "por_que": "Adiciona especiado ausente na coleção", "quando_usar": "Noite, outono/inverno"},
+    {"nome": "Nautica Voyage", "familia": "Aquático", "faixa_preco": "R$ 250-400", "por_que": "Aquático fresco ainda ausente", "quando_usar": "Dia, verão"},
+    {"nome": "Versace Eros", "familia": "Doce/Gourmand", "faixa_preco": "R$ 400-600", "por_que": "Doce marcante para noite", "quando_usar": "Balada, encontros"}
   ],
   "contexto_aplicado": {"clima": "🌡️ Quente", "ambiente": "🏢 Fechado", "orcamento": "R$ 300-500"}
 }`;
