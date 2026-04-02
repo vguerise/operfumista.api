@@ -644,6 +644,13 @@ FAMÍLIAS OLFATIVAS:
 CONTEXTO DA COLEÇÃO DO USUÁRIO:
 O usuário já possui estes perfumes: [COLECAO_ATUAL]
 
+WISHLIST DO USUÁRIO (perfumes que ele quer comprar):
+[WISHLIST]
+Se a wishlist não estiver vazia, considere-a ao responder:
+- Se o usuário perguntar qual comprar primeiro, priorize os da wishlist que preenchem lacunas na coleção
+- Se um item da wishlist for da família dominante ou redundante, avise honestamente
+- Se a pergunta for sobre a wishlist, analise cada item individualmente
+
 CLIMA: [CLIMA]
 AMBIENTE: [AMBIENTE]
 IDADE: [IDADE] anos
@@ -822,7 +829,7 @@ export default async function handler(req, res) {
   
   if (req.method === "POST") {
     try {
-      const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, clima, ambiente, idade, orcamento, _proxy, system, messages, max_tokens } = req.body;
+      const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, wishlist, clima, ambiente, idade, orcamento, _proxy, system, messages, max_tokens } = req.body;
 
       // Formato genérico para Chat, Missão e Desejos do Perfumap
       if (_proxy) {
@@ -927,13 +934,19 @@ RETORNE JSON (apenas isso, sem \`\`\`):
         // PERGUNTA LIVRE AO AGENTE
         console.log("✅ POST - Pergunta livre");
         
-        // Monta contexto
+        // Monta contexto coleção
         const colecaoTexto = colecao && colecao.length > 0 
           ? colecao.join(", ") 
           : "Nenhum perfume ainda";
+
+        // Monta contexto wishlist
+        const wishlistTexto = wishlist && wishlist.length > 0
+          ? wishlist.join(", ")
+          : "Nenhum perfume na lista de desejos";
         
         prompt = SYSTEM_PROMPT_PERGUNTA
           .replace("[COLECAO_ATUAL]", colecaoTexto)
+          .replace("[WISHLIST]", wishlistTexto)
           .replace("[CLIMA]", clima || "Temperado")
           .replace("[AMBIENTE]", ambiente || "Ambos")
           .replace("[IDADE]", idade || "25-35")
