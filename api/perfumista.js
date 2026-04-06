@@ -59,17 +59,13 @@ Faça a contagem:
 - Família B: Y perfumes
 - Família C: Z perfumes
 
-PASSO 3: IDENTIFIQUE FAMÍLIAS VAZIAS (0 PERFUMES)
-Liste as 9 famílias e marque as vazias:
-1. 🍋 Fresco/Cítrico: [ ] vazia ou [X] tem perfumes
-2. 🌳 Aromático/Verde: [ ] vazia ou [X] tem perfumes
-3. 🍯 Doce/Gourmand: [ ] vazia ou [X] tem perfumes
-4. 🪵 Amadeirado: [ ] vazia ou [X] tem perfumes
-5. 🌶️ Especiado/Oriental: [ ] vazia ou [X] tem perfumes
-6. 💧 Aquático: [ ] vazia ou [X] tem perfumes
-7. 🧼 Talco/Fougère: [ ] vazia ou [X] tem perfumes
-8. 🌸 Floral: [ ] vazia ou [X] tem perfumes
-9. 🍇 Frutado: [ ] vazia ou [X] tem perfumes
+PASSO 3: IDENTIFIQUE FAMÍLIAS PRESENTES E AUSENTES
+Com base na classificação de cada perfume, liste:
+- Quais famílias olfativas estão representadas na coleção
+- Quantos perfumes cada família tem
+- Quais famílias importantes estão AUSENTES (considere o perfil e uso do colecionador)
+
+Não se limite a uma lista fixa de famílias. Use a família olfativa real de cada perfume conforme o Fragantica. Exemplos de famílias possíveis (não exclusivas): Fresco/Cítrico, Aromático/Verde, Doce/Gourmand, Amadeirado, Especiado/Oriental, Aquático/Mineral, Talco/Fougère, Floral/Floral Branco, Frutado, Tropical, Couro, Resinoso, Defumado, Chypre, entre outras.
 
 PASSO 4: DECISÃO OBRIGATÓRIA
 
@@ -254,16 +250,8 @@ IMPORTANTE:
 🔍 CONSULTA OBRIGATÓRIA AO FRAGANTICA:
 Para CADA perfume mencionado pelo usuário, você DEVE consultar o Fragantica/Fragrantica para identificar a família olfativa correta baseada nas notas principais e acordes. Use seu conhecimento interno sobre a base de dados do Fragantica para classificar corretamente.
 
-FAMÍLIAS OLFATIVAS (use exatamente estes nomes):
-1. Fresco/Cítrico
-2. Aromático/Verde
-3. Doce/Gourmand
-4. Amadeirado
-5. Especiado/Oriental
-6. Aquático/Mineral
-7. Talco/Fougère
-8. Floral/Floral Branco
-9. Frutado
+FAMÍLIAS OLFATIVAS:
+Use a família olfativa REAL de cada perfume. Não se limite a uma lista fechada. As famílias devem refletir com precisão o que o Fragantica indica. Exemplos comuns: Fresco/Cítrico, Aromático/Verde, Doce/Gourmand, Amadeirado, Especiado/Oriental, Aquático/Mineral, Talco/Fougère, Floral/Floral Branco, Frutado, Tropical, Couro, Resinoso, Defumado, Chypre — mas use a que for mais precisa para cada perfume, mesmo que não esteja nesta lista.
 
 🔍 GUIA DEFINITIVO DE CLASSIFICAÇÃO POR FAMÍLIA (com exemplos reais):
 
@@ -615,18 +603,21 @@ FORMATO JSON (APENAS isso, sem \`\`\`):
     "total_perfumes": 3,
     "familias_representadas": 3,
     "perfumes_por_familia": {
-      "Amadeirado": 1, "Aromático/Verde": 1, "Aquático": 1,
-      "Doce/Gourmand": 0, "Especiado/Oriental": 0, "Floral": 0,
-      "Fresco/Cítrico": 0, "Frutado": 0, "Talco/Fougère": 0
+      "Amadeirado": 1, "Aromático/Verde": 1, "Aquático/Mineral": 1
     },
+    "classificacao": [
+      {"nome": "Bleu de Chanel", "familia": "Amadeirado"},
+      {"nome": "Sauvage EDT", "familia": "Aromático/Verde"},
+      {"nome": "Nautica Voyage", "familia": "Aquático/Mineral"}
+    ],
     "familia_dominante": {"nome": "🪵 Amadeirado", "quantidade": 1, "porcentagem": 33},
-    "top3_faltando": ["🍯 Doce/Gourmand", "🌶️ Especiado/Oriental", "💧 Aquático/Mineral"],
+    "top3_faltando": ["🍯 Doce/Gourmand", "🌶️ Especiado/Oriental", "🍇 Frutado"],
     "nivel": {"emoji": "🎯", "titulo": "INICIANTE", "descricao": "Foque nas 5 funções básicas"},
     "equilibrio": {"status": "equilibrada", "emoji": "✅", "mensagem": "Coleção equilibrada, continue diversificando"}
   },
   "recomendacoes": [
     {"nome": "Lattafa Khamrah", "familia": "Especiado/Oriental", "faixa_preco": "R$ 200-350", "por_que": "Adiciona especiado ausente na coleção", "quando_usar": "Noite, outono/inverno"},
-    {"nome": "Nautica Voyage", "familia": "Aquático", "faixa_preco": "R$ 250-400", "por_que": "Aquático fresco ainda ausente", "quando_usar": "Dia, verão"},
+    {"nome": "Nautica Voyage", "familia": "Aquático/Mineral", "faixa_preco": "R$ 250-400", "por_que": "Aquático fresco ainda ausente", "quando_usar": "Dia, verão"},
     {"nome": "Versace Eros", "familia": "Doce/Gourmand", "faixa_preco": "R$ 400-600", "por_que": "Doce marcante para noite", "quando_usar": "Balada, encontros"}
   ],
   "contexto_aplicado": {"clima": "🌡️ Quente", "ambiente": "🏢 Fechado", "orcamento": "R$ 300-500"}
@@ -643,6 +634,10 @@ FAMÍLIAS OLFATIVAS:
 
 CONTEXTO DA COLEÇÃO DO USUÁRIO:
 O usuário já possui estes perfumes: [COLECAO_ATUAL]
+
+WISHLIST DO USUÁRIO (perfumes que ele quer comprar):
+[WISHLIST]
+Se a wishlist não estiver vazia, considere-a ao responder — priorize itens que preenchem lacunas, e avise honestamente sobre redundâncias.
 
 CLIMA: [CLIMA]
 AMBIENTE: [AMBIENTE]
@@ -822,7 +817,7 @@ export default async function handler(req, res) {
   
   if (req.method === "POST") {
     try {
-      const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, clima, ambiente, idade, orcamento, _proxy, system, messages, max_tokens } = req.body;
+      const { diagnostico, pergunta, iniciar_colecao, contexto, colecao, wishlist, clima, ambiente, idade, orcamento, _proxy, system, messages, max_tokens } = req.body;
 
       // Formato genérico para Chat, Missão e Desejos do Perfumap
       if (_proxy) {
@@ -927,13 +922,19 @@ RETORNE JSON (apenas isso, sem \`\`\`):
         // PERGUNTA LIVRE AO AGENTE
         console.log("✅ POST - Pergunta livre");
         
-        // Monta contexto
+        // Monta contexto coleção
         const colecaoTexto = colecao && colecao.length > 0 
           ? colecao.join(", ") 
           : "Nenhum perfume ainda";
+
+        // Monta contexto wishlist
+        const wishlistTexto = wishlist && wishlist.length > 0
+          ? wishlist.join(", ")
+          : "Nenhum perfume na lista de desejos";
         
         prompt = SYSTEM_PROMPT_PERGUNTA
           .replace("[COLECAO_ATUAL]", colecaoTexto)
+          .replace("[WISHLIST]", wishlistTexto)
           .replace("[CLIMA]", clima || "Temperado")
           .replace("[AMBIENTE]", ambiente || "Ambos")
           .replace("[IDADE]", idade || "25-35")
