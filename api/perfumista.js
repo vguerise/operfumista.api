@@ -65,7 +65,9 @@ Com base na classificação de cada perfume, liste:
 - Quantos perfumes cada família tem
 - Quais famílias importantes estão AUSENTES (considere o perfil e uso do colecionador)
 
-Não se limite a uma lista fixa de famílias. Use a família olfativa real de cada perfume conforme o Fragantica. Exemplos de famílias possíveis (não exclusivas): Fresco/Cítrico, Aromático/Verde, Doce/Gourmand, Amadeirado, Especiado/Oriental, Aquático/Mineral, Talco/Fougère, Floral/Floral Branco, Frutado, Tropical, Couro, Resinoso, Defumado, Chypre, entre outras.
+Não se limite a uma lista fixa de famílias. Use a família olfativa real de cada perfume conforme o Fragantica. Exemplos de famílias possíveis (não exclusivas): Fresco/Cítrico, Aromático/Verde, Doce/Gourmand, Amadeirado, Especiado/Oriental, Aquático/Mineral, Talco/Fougère, Floral/Floral Branco, Frutado, Couro, Resinoso, Defumado, Chypre, entre outras.
+
+⚠️ REGRA DE NOMENCLATURA: Prefira nomes simples e únicos. Evite combinar duas famílias com "/" a menos que seja o nome padrão do Fragantica. Exemplos: use "Frutado" (não "Frutado/Tropical"), use "Amadeirado" (não "Amadeirado/Couro"), use "Aquático/Mineral" (é o nome padrão). Se um perfume tem notas tropicais mas é primariamente frutado, classifique como "Frutado".
 
 PASSO 4: DECISÃO OBRIGATÓRIA
 
@@ -251,7 +253,7 @@ IMPORTANTE:
 Para CADA perfume mencionado pelo usuário, você DEVE consultar o Fragantica/Fragrantica para identificar a família olfativa correta baseada nas notas principais e acordes. Use seu conhecimento interno sobre a base de dados do Fragantica para classificar corretamente.
 
 FAMÍLIAS OLFATIVAS:
-Use a família olfativa REAL de cada perfume. Não se limite a uma lista fechada. As famílias devem refletir com precisão o que o Fragantica indica. Exemplos comuns: Fresco/Cítrico, Aromático/Verde, Doce/Gourmand, Amadeirado, Especiado/Oriental, Aquático/Mineral, Talco/Fougère, Floral/Floral Branco, Frutado, Tropical, Couro, Resinoso, Defumado, Chypre — mas use a que for mais precisa para cada perfume, mesmo que não esteja nesta lista.
+Use a família olfativa REAL de cada perfume. Não se limite a uma lista fechada. As famílias devem refletir com precisão o que o Fragantica indica. Exemplos comuns: Fresco/Cítrico, Aromático/Verde, Doce/Gourmand, Amadeirado, Especiado/Oriental, Aquático/Mineral, Talco/Fougère, Floral/Floral Branco, Frutado, Couro, Resinoso, Defumado, Chypre — mas use a que for mais precisa. Prefira nomes simples: "Frutado" ao invés de "Frutado/Tropical", "Amadeirado" ao invés de "Amadeirado/Couro".
 
 🔍 GUIA DEFINITIVO DE CLASSIFICAÇÃO POR FAMÍLIA (com exemplos reais):
 
