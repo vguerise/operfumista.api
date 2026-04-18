@@ -1,4 +1,4 @@
-// VERSÃO FINAL - CORS + Análise completa + Perguntas livres ao agente
+﻿// VERSÃO FINAL - CORS + Análise completa + Perguntas livres ao agente
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -40,8 +40,112 @@ async function registrarSugestoes(nomes) {
   } catch (_) {}
 }
 
+
+// ===== CLASSIFICAÇÃO VIA GEMINI + CACHE SUPABASE =====
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
+
+async function buscarClassificacoesSupabase(nomes) {
+  try {
+    const { data } = await DB
+      .from("perfumes_classificados")
+      .select("nome, familia_olfativa")
+      .in("nome", nomes);
+    if (!data) return {};
+    const map = {};
+    data.forEach(({ nome, familia_olfativa }) => {
+      map[nome.toLowerCase()] = familia_olfativa;
+    });
+    return map;
+  } catch (_) { return {}; }
+}
+
+async function salvarClassificacoes(classificacoes) {
+  try {
+    const rows = classificacoes.map(({ nome, familia }) => ({
+      nome,
+      familia_olfativa: familia,
+      fonte: "gemini",
+      confirmado: false,
+      updated_at: new Date().toISOString()
+    }));
+    await DB.from("perfumes_classificados")
+      .upsert(rows, { onConflict: "nome" });
+  } catch (_) {}
+}
+
+async function classificarViGemini(nomes) {
+  if (!nomes.length || !GEMINI_KEY) return {};
+  try {
+    const lista = nomes.map((n, i) => `${i + 1}. ${n}`).join("\n");
+    const prompt = `Você é especialista em perfumaria. Classifique cada perfume abaixo na família olfativa correta segundo o Fragrantica. Use busca na web para confirmar cada um.
+
+Perfumes:
+${lista}
+
+Famílias aceitas: Fresco/Cítrico, Aromático/Verde, Doce/Gourmand, Amadeirado, Especiado/Oriental, Aquático/Mineral, Talco/Fougère, Floral/Floral Branco, Frutado, Couro, Chypre
+
+Responda APENAS com JSON:
+{"classificacoes": [{"nome": "nome exato", "familia": "família olfativa"}]}`;
+
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tools: [{ google_search: {} }],
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.1 }
+        })
+      }
+    );
+
+    const json = await resp.json();
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const jsonStart = text.indexOf("{");
+    const jsonEnd = text.lastIndexOf("}") + 1;
+    const parsed = JSON.parse(text.slice(jsonStart, jsonEnd));
+
+    const map = {};
+    (parsed.classificacoes || []).forEach(({ nome, familia }) => {
+      if (nome && familia) map[nome.toLowerCase()] = familia;
+    });
+    return map;
+  } catch (e) {
+    console.error("Gemini erro:", e.message);
+    return {};
+  }
+}
+
+async function classificarColecao(nomes) {
+  if (!nomes || !nomes.length) return {};
+
+  // Camada 1: busca no cache Supabase
+  const cached = await buscarClassificacoesSupabase(nomes);
+  const semCache = nomes.filter(n => !cached[n.toLowerCase()]);
+
+  // Camada 2: classifica os ausentes via Gemini
+  let geminiMap = {};
+  if (semCache.length) {
+    geminiMap = await classificarViGemini(semCache);
+    const novas = semCache
+      .filter(n => geminiMap[n.toLowerCase()])
+      .map(n => ({ nome: n, familia: geminiMap[n.toLowerCase()] }));
+    if (novas.length) await salvarClassificacoes(novas);
+  }
+
+  // Resultado final
+  const resultado = {};
+  nomes.forEach(n => {
+    resultado[n] = cached[n.toLowerCase()] || geminiMap[n.toLowerCase()] || null;
+  });
+  return resultado;
+}
+
 // SYSTEM_PROMPT para análise completa da coleção
 const SYSTEM_PROMPT_ANALISE = `Você é "O Perfumista" - especialista em perfumaria masculina brasileira com foco em ANÁLISE DE COLEÇÃO e EQUILÍBRIO OLFATIVO.
+
+⚡ CLASSIFICAÇÕES PRÉ-CONFIRMADAS: Se a mensagem do usuário contiver uma seção "🎯 CLASSIFICAÇÕES CONFIRMADAS", use EXATAMENTE essas famílias para cada perfume listado. NÃO reclassifique, NÃO questione, NÃO altere. Essas classificações foram verificadas via Fragrantica em tempo real.
 
 🚨🚨🚨 REGRA CRÍTICA ABSOLUTA - NUNCA VIOLE 🚨🚨🚨
 
@@ -918,7 +1022,27 @@ RETORNE JSON (apenas isso, sem \`\`\`):
         // ANÁLISE COMPLETA DA COLEÇÃO
         console.log("✅ POST - Análise completa");
         prompt = SYSTEM_PROMPT_ANALISE.replace("[QUARENTENA]", quarentenaTexto);
-        userMessage = diagnostico;
+
+        // Pré-classificação via Gemini + cache Supabase
+        let userMessage_base = diagnostico;
+        if (colecao && colecao.length > 0) {
+          try {
+            const nomes = colecao.map(p => typeof p === "string" ? p : p.nome).filter(Boolean);
+            const classifs = await classificarColecao(nomes);
+            const temClassif = Object.values(classifs).some(v => v);
+            if (temClassif) {
+              const linhas = Object.entries(classifs)
+                .filter(([, f]) => f)
+                .map(([n, f]) => n + ": " + f)
+                .join("\n");
+              userMessage_base = diagnostico + "\n\n🎯 CLASSIFICAÇÕES CONFIRMADAS (USE EXATAMENTE ESTAS - NÃO RECLASSIFIQUE):\n" + linhas;
+              console.log("✅ Pré-classificação Gemini OK:", Object.keys(classifs).length, "perfumes");
+            }
+          } catch (e) {
+            console.error("Pré-classificação falhou, usando GPT:", e.message);
+          }
+        }
+        userMessage = userMessage_base;
         
       } else if (pergunta) {
         // PERGUNTA LIVRE AO AGENTE
