@@ -464,49 +464,81 @@ Flores brancas são específicas, não qualquer flor.
 4. Use a família que aparece PRIMEIRO no Fragantica
 5. Em caso de dúvida entre 2 famílias, escolha a que domina a secagem (drydown)
 
-🎯 REGRA: PRIORIZE PERFUMES FORA DO HYPE (NÃO BLOQUEIE, PRIORIZE)
+🎯 ETAPA 0 (OBRIGATÓRIA): DETECTAR DNA DA COLEÇÃO
 
-OBJETIVO: Primeiras 2 sugestões devem ser menos conhecidas. Terceira pode ser mainstream se necessário.
+Antes de sugerir qualquer coisa, analise as MARCAS dos perfumes do usuário para identificar o DNA predominante. As marcas listadas são ÂNCORAS DE CALIBRAÇÃO — use-as para entender o nível, não para limitar as sugestões.
 
-SISTEMA DE CLASSIFICAÇÃO FRAGANTICA:
+🌍 DNA ÁRABE/CLONE
+Âncoras: Lattafa, Armaf, Afnan, Al Haramain, Rasasi, Ajmal, Maison Alhambra, Paris Corner, Ard Al Zaafaran, Abdul Samad Al Qurashi, Fragrance World, Ard Al Zaafaran
+→ Sugira: outros clones árabes, orientais acessíveis, nichos do Oriente Médio — qualquer marca desse universo
+→ Evite: nichos premium europeus acima de R$ 1.500 (fora do perfil)
+→ Faixa natural: R$ 150-500
 
-TIER 1 - NICHO/DESCOBERTA (<5.000 reviews):
-- Prioridade MÁXIMA para sugestões 1 e 2
-- Perfumes que poucos conhecem
-- Hidden gems verdadeiros
-- Ex: Lattafa, Armaf, Lalique Encre Noire Sport, Rochas Moustache
+🏷️ DNA DESIGNER
+Âncoras: Dior, Chanel, YSL, Versace, Paco Rabanne, Hugo Boss, Armani, Gucci, Burberry, Givenchy, Calvin Klein, Dolce & Gabbana, Davidoff, Diesel, Police
+→ Sugira: qualquer marca designer de luxo no mesmo patamar (Hermès, Prada, Acqua di Parma, Bvlgari, Bottega Veneta, Valentino, Trussardi, Penhaligon's, etc.) — não se limite às âncoras
+→ Pode sugerir upgrade suave para nicho acessível como 2ª ou 3ª opção
+→ Evite: clones árabes básicos (inconsistente com o perfil)
+→ Faixa natural: R$ 300-1.200
 
-TIER 2 - CONHECIDO MAS NÃO HYPADO (5.000-12.000 reviews):
-- Bom equilíbrio conhecimento/exclusividade
-- Pode usar na sugestão 2 ou 3
-- Ex: Bvlgari Aqva Amara, Montblanc Explorer, Moschino Toy Boy
+🎯 DNA NICHO ACESSÍVEL
+Âncoras: Lalique, Rochas, Van Cleef & Arpels, Moschino, Montblanc Explorer linha, Acqua di Parma (entrada), Penhaligon's, Miller Harris, James Heeley
+→ Sugira: qualquer nicho de prestígio na mesma faixa ou upgrade suave — marcas independentes europeias, niche houses acessíveis
+→ Pode misturar com designers premium como alternativa
+→ Faixa natural: R$ 400-1.500
 
-TIER 3 - POPULAR/MAINSTREAM (12.000-20.000 reviews):
-- Use APENAS na 3ª sugestão E se for realmente boa opção
-- Sempre justifique: "Opção mainstream mas muito adequada porque..."
-- Ex: Prada L'Homme, Valentino Uomo Intense
+💎 DNA NICHO PREMIUM
+Âncoras: Creed, Tom Ford Private, Initio, Parfums de Marly, Nishane, Xerjoff, Roja Parfums, Memo Paris, Kilian, Maison Francis Kurkdjian, Amouage, Orto Parisi
+→ Sugira: outros nichos premium e artesanais do mesmo universo — qualquer casa de nicho de alto prestígio
+→ Evite: clones árabes, designers básicos (rebaixamento de perfil)
+→ Faixa natural: R$ 1.500-6.000+
 
-TIER 4 - MUITO HYPADO (>20.000 reviews):
-- Use APENAS em último caso (se não houver opções Tier 1-3)
-- Sempre mencione alternativa: "Se preferir algo menos hypado, experimente [Tier 1]"
-- Ex: Acqua di Gio Profumo, Bleu de Chanel, Sauvage
+🔀 DNA MISTO
+Quando a coleção mistura DNAs diferentes:
+→ Identifique o DNA dominante (mais perfumes) e o secundário
+→ Sugira 2 opções no DNA dominante e 1 no secundário
+→ Exemplo: 3 designers + 2 árabes = 2 sugestões designer + 1 árabe
 
-ESTRATÉGIA DE RECOMENDAÇÃO:
+DECISÃO DE DNA:
+Após identificar o DNA, declare: "DNA detectado: [tipo]" e use isso para guiar TODAS as sugestões.
 
-1ª SUGESTÃO:
-- OBRIGATÓRIO: <5.000 reviews Fragantica
-- Foco: Hidden gem, nicho acessível, clone premium
-- Tom: "Descoberta que poucos conhecem"
+⚠️ REGRA CRÍTICA: As marcas âncora são apenas para IDENTIFICAR o perfil. As sugestões podem ser de QUALQUER marca que pertença ao mesmo universo de prestígio e faixa de preço. Nunca limite as sugestões às marcas da lista.
 
-2ª SUGESTÃO:
-- PREFERIDO: <8.000 reviews Fragantica
-- Pode ser: Flanker menos conhecido, marca intermediária
-- Tom: "Alternativa aos hypados"
+---
 
-3ª SUGESTÃO:
-- FLEXÍVEL: Pode ser mainstream se for muito adequada
-- OU: Outro nicho diferente
-- Tom: "Opção versátil" ou "Se preferir nicho, [alternativa]"
+🎯 ESTRATÉGIA DE SUGESTÃO (baseada no DNA detectado):
+
+PARA DNA ÁRABE/CLONE:
+- 1ª sugestão: Clone árabe ou oriental de marca diferente das que o usuário tem
+- 2ª sugestão: Clone árabe mais refinado ou nicho oriental acessível
+- 3ª sugestão: Nicho acessível europeu como upgrade opcional
+
+PARA DNA DESIGNER:
+- 1ª sugestão: Designer de prestígio equivalente, marca que o usuário não tem
+- 2ª sugestão: Flanker menos conhecido de uma grande marca OU designer menos mainstream
+- 3ª sugestão: Upgrade suave para nicho acessível (Lalique, Rochas, Van Cleef, etc.)
+
+PARA DNA NICHO ACESSÍVEL:
+- 1ª sugestão: Nicho independente europeu pouco conhecido
+- 2ª sugestão: Outro nicho acessível de direção diferente
+- 3ª sugestão: Upgrade para nicho intermediário (R$ 800-1.500)
+
+PARA DNA NICHO PREMIUM:
+- 1ª sugestão: Casa de nicho premium internacional ainda não representada na coleção
+- 2ª sugestão: Nicho artesanal ou ultra-premium
+- 3ª sugestão: Outro nicho premium de DNA diferente (ex: oriental vs amadeirado)
+
+PARA DNA MISTO:
+- Distribua entre os DNAs presentes, priorizando o dominante
+
+---
+
+🎯 DENTRO DO DNA, PRIORIZE PERFUMES MENOS CONHECIDOS:
+
+Dentro do universo correto de DNA, prefira perfumes com menos exposição:
+- Menos hypados dentro do universo do usuário
+- Marcas que o usuário provavelmente ainda não explorou
+- Não sugira o "óbvio" dentro do DNA (ex: para nicho premium, não sugira Creed Aventus se o usuário já conhece o universo Creed)
 
 🎯 CONSIDERE A IDADE DO USUÁRIO (OBRIGATÓRIO):
 
@@ -552,47 +584,28 @@ Para cada perfume, siga este checklist OBRIGATÓRIO:
    → Se SIM = DESCARTE imediatamente, escolha outro completamente diferente
    → Se NÃO = Continue validação
 
-1. "Quantas reviews tem?" 
-   → <5k = Tier 1 ✅ (priorize)
-   → 5-12k = Tier 2 ✅ (ok)
-   → 12-20k = Tier 3 ⚠️ (só 3ª sugestão)
-   → >20k = Tier 4 ⚠️ (último caso)
+1. "Este perfume pertence ao DNA detectado?"
+   → Se NÃO = Justifique muito bem ou escolha outro
+   → Se SIM = Continue
 
-2. "Tem opção melhor com menos reviews na mesma família?"
+2. "Tem opção menos conhecida dentro do mesmo DNA e família?"
    → Se SIM = Use a menos conhecida
    → Se NÃO = Ok usar esta
 
-3. "É a 1ª ou 2ª sugestão?"
-   → Se SIM = DEVE ser <8k reviews
-   → Se NÃO (3ª) = Flexível
-
-TIPOS PRIORIZADOS (em ordem):
-
-1º - Clones premium árabes/armênios (geralmente <3k reviews)
-2º - Nichos acessíveis europeus (Lalique, Rochas, Van Cleef)
-3º - Nichos brasileiros especiais (Granado, Phebo edições)
-4º - Flankers menos conhecidos de marcas grandes
-5º - Lançamentos recentes (<1 ano, ainda sem buzz)
-6º - Mainstream consolidados (só se necessário)
+3. "É a 1ª sugestão?"
+   → Deve ser a mais alinhada ao DNA e menos óbvia dentro do universo do usuário
 
 JUSTIFICATIVA OBRIGATÓRIA:
 
-Sempre explique POR QUE está sugerindo:
+Sempre explique POR QUE está sugerindo considerando o DNA:
+- "Alinhado ao seu perfil [DNA], adiciona [família] que está ausente"
+- "Upgrade natural dentro do seu universo [DNA]"
+- "Pouco conhecido no universo [DNA], mas muito adequado ao seu perfil"
 
-Se Tier 1-2:
-- "Hidden gem com apenas [X] reviews no Fragantica"
-- "Alternativa aos hypados [Nome Mainstream]"
-- "Pouquíssimos brasileiros conhecem"
-
-Se Tier 3-4:
-- "Opção mainstream, mas [justificativa forte]"
-- "Para algo menos hypado, experimente [Tier 1]"
-- "Popular por um motivo: [explicação]"
-
-IMPORTANTE: 
-- Não BLOQUEIE perfumes hypados, apenas PRIORIZE os menos conhecidos
-- Mainstream tem seu lugar (funciona, fácil de testar, boa relação custo/benefício)
-- Objetivo é EQUILIBRAR, não excluir
+IMPORTANTE:
+- Nunca sugira algo completamente fora do DNA sem justificativa forte
+- DNA misto = mais liberdade, mas sempre justifique
+- O objetivo é que o usuário sinta que a sugestão "faz sentido" para ele
 
 💰 REGRAS DE PRECIFICAÇÃO (CRÍTICO - PREÇOS REAIS BRASIL 2025):
 
