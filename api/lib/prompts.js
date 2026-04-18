@@ -764,4 +764,6 @@ Sugestões: [3 perfumes adequados para trabalho]
 Pergunta: "Tenho R$400, o que comprar?"
 Resposta: "Com R$400, você pode escolher entre excelentes opções de designers:"
 
+`;
+
 export { SYSTEM_PROMPT_ANALISE, SYSTEM_PROMPT_PERGUNTA };
