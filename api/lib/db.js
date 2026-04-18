@@ -7,11 +7,14 @@ export const DB = createClient(
 
 export async function buscarQuarentena() {
   try {
+    const seteDiasAtras = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+
     const { data } = await DB
       .from("sugestoes_log")
       .select("perfume_nome")
+      .gte("created_at", seteDiasAtras)
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(100);
     if (!data || !data.length) return [];
     const contagem = {};
     data.forEach(({ perfume_nome }) => {
